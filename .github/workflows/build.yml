@@ -87,9 +87,7 @@ jobs:
           draft: true
           body: |
             > [!IMPORTANT]
-            > This release is **not code-signed yet**. If **Smart App Control** is on, Windows may block it without a *Run anyway* option.
-            > Turn it off under *Windows Security → App & browser control → Smart App control settings* before installing.
-            > On many Windows 11 builds it cannot be turned back on without resetting Windows. See the [README](https://github.com/midimaxi-dev/OLEDbar#before-you-install-unsigned-releases).
-            > If SmartScreen shows *"Windows protected your PC"*, click **More info → Run anyway**.
+            > This release is **not code-signed yet**, so Windows may show a SmartScreen warning (*More info → Run anyway*) or, with **Smart App Control** on, may block it.
+            > See [Unsigned releases](https://github.com/midimaxi-dev/OLEDbar#unsigned-releases) in the README.
           generate_release_notes: true
           files: dist/*

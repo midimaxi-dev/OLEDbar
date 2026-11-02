@@ -26,15 +26,13 @@ Get the latest version from **[Releases](https://github.com/midimaxi-dev/OLEDbar
 
 `SHA256SUMS.txt` lists checksums for both files.
 
-### Before you install: unsigned releases
+### Unsigned releases
 
-OLEDbar releases are **not code-signed yet** (signing is planned). Until they are, Windows may block them:
+OLEDbar releases are **not code-signed yet** (signing is planned), so Windows may warn about them. Only act if you actually see a warning:
 
-1. **Smart App Control.** If it's on, Windows may block unsigned apps it doesn't recognise, with no *Run anyway* option. If OLEDbar is blocked, turn it off before installing:
-   - Open **Windows Security → App & browser control → Smart App control settings**.
-   - If it shows **On**, choose **Off**, then run the installer or the EXE.
-   - ⚠️ On many Windows 11 builds, Smart App Control **cannot be turned back on** without resetting Windows. Newer builds allow it. Only do this if you accept that trade-off; otherwise wait for a signed release.
-2. **SmartScreen.** Windows may show *"Windows protected your PC"* for a downloaded file. Click **More info → Run anyway**. For the zip, you can also right-click it → *Properties* → tick **Unblock** before extracting.
+- **SmartScreen** (*"Windows protected your PC"*): click **More info → Run anyway**. For the zip, you can also right-click it → *Properties* → tick **Unblock** before extracting.
+- **Smart App Control** (*"blocked to help protect you"*, with no *Run anyway* button): it judges each file by reputation, so unsigned apps may or may not be blocked. If OLEDbar is blocked, you can turn it off under **Windows Security → App & browser control → Smart App control settings**.
+  - ⚠️ On many Windows 11 builds it **cannot be turned back on** without resetting Windows. Newer builds allow it. Only do this if you accept that trade-off; otherwise wait for a signed release.
 
 To check that a download is genuine, compare its hash with `SHA256SUMS.txt`, e.g. `Get-FileHash .\OLEDbar-0.1.0-x64-setup.exe`.
 
@@ -178,7 +176,7 @@ This writes `OLEDbar-<version>-x64.zip`, `SHA256SUMS.txt` and, if [Inno Setup 6]
 ## Known limitations
 
 - **Multiple monitors:** only the main taskbar (the one on your primary display) is dimmed. Extra taskbars shown with *Settings → Personalization → Taskbar → Show my taskbar on all displays* are not dimmed yet.
-- **Unsigned releases:** see [Before you install](#before-you-install-unsigned-releases).
+- **Unsigned releases:** see [Unsigned releases](#unsigned-releases).
 
 ## Troubleshooting
 
