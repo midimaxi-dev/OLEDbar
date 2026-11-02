@@ -30,7 +30,7 @@ Get the latest version from **[Releases](https://github.com/midimaxi-dev/OLEDbar
 
 OLEDbar releases are **not code-signed yet** (signing is planned). Until they are, Windows may block them:
 
-1. **Smart App Control.** If it's on, Windows blocks unsigned apps and offers no *Run anyway* option. Check, and if necessary turn it off, before installing:
+1. **Smart App Control.** If it's on, Windows may block unsigned apps it doesn't recognise, with no *Run anyway* option. If OLEDbar is blocked, turn it off before installing:
    - Open **Windows Security → App & browser control → Smart App control settings**.
    - If it shows **On**, choose **Off**, then run the installer or the EXE.
    - ⚠️ On many Windows 11 builds, Smart App Control **cannot be turned back on** without resetting Windows. Newer builds allow it. Only do this if you accept that trade-off; otherwise wait for a signed release.
