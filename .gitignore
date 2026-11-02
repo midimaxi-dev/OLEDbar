@@ -1,0 +1,8 @@
+out/
+build/
+.vs/
+vcpkg_installed/
+*.user
+
+# Local design notes, not published
+docs/

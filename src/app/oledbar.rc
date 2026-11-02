@@ -1,0 +1,78 @@
+#include <windows.h>
+#include <commctrl.h>
+#include "resource.h"
+#include "version.h"
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+
+// Lowest ID, so Explorer uses it as the EXE icon.
+IDI_APP ICON "app.ico"
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION OLEDBAR_VERSION_MAJOR, OLEDBAR_VERSION_MINOR, OLEDBAR_VERSION_PATCH, 0
+ PRODUCTVERSION OLEDBAR_VERSION_MAJOR, OLEDBAR_VERSION_MINOR, OLEDBAR_VERSION_PATCH, 0
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+ FILEFLAGS 0
+ FILEOS VOS_NT_WINDOWS32
+ FILETYPE VFT_APP
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "CompanyName", "OLEDbar contributors"
+            VALUE "FileDescription", "OLEDbar"
+            VALUE "FileVersion", OLEDBAR_VERSION_STRING
+            VALUE "InternalName", "OLEDbar"
+            VALUE "LegalCopyright", "Copyright (c) 2026 OLEDbar contributors. MIT License."
+            VALUE "OriginalFilename", "OLEDbar.exe"
+            VALUE "ProductName", "OLEDbar"
+            VALUE "ProductVersion", OLEDBAR_VERSION_STRING
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 1200
+    END
+END
+
+IDD_SETTINGS DIALOGEX 0, 0, 300, 261
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "OLEDbar Settings"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    AUTOCHECKBOX    "&Dim the taskbar when it's not in use", IDC_ENABLED, 10, 8, 280, 10
+
+    GROUPBOX        "Dimming", IDC_STATIC, 7, 24, 286, 102
+    LTEXT           "Dim &level:", IDC_STATIC, 15, 39, 80, 8
+    CONTROL         "", IDC_DIM_SLIDER, TRACKBAR_CLASS, TBS_HORZ | TBS_AUTOTICKS | WS_TABSTOP, 96, 35, 146, 15
+    LTEXT           "", IDC_DIM_VALUE, 246, 39, 44, 8
+    LTEXT           "Dim &after idle (seconds):", IDC_STATIC, 15, 58, 210, 8
+    EDITTEXT        IDC_IDLE_EDIT, 230, 56, 50, 12, ES_AUTOHSCROLL
+    CONTROL         "", IDC_IDLE_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 56, 10, 12
+    LTEXT           "Dim a&gain after using the taskbar (seconds):", IDC_STATIC, 15, 74, 210, 8
+    EDITTEXT        IDC_REDIM_EDIT, 230, 72, 50, 12, ES_AUTOHSCROLL
+    CONTROL         "", IDC_REDIM_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 72, 10, 12
+    LTEXT           "Fade to &dim (milliseconds):", IDC_STATIC, 15, 90, 210, 8
+    EDITTEXT        IDC_FADE_OUT_EDIT, 230, 88, 50, 12, ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "", IDC_FADE_OUT_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 88, 10, 12
+    LTEXT           "Fade back to &bright (milliseconds):", IDC_STATIC, 15, 106, 210, 8
+    EDITTEXT        IDC_FADE_IN_EDIT, 230, 104, 50, 12, ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "", IDC_FADE_IN_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 104, 10, 12
+
+    GROUPBOX        "Behavior", IDC_STATIC, 7, 132, 286, 98
+    AUTOCHECKBOX    "Wake when the taskbar gets keyboard &focus (Win+T)", IDC_WAKE_FOCUS, 15, 146, 270, 10
+    AUTOCHECKBOX    "Stay bright while &Start, Search or Quick Settings is open", IDC_WAKE_SHELL, 15, 160, 270, 10
+    AUTOCHECKBOX    "Never dim over full&screen apps and videos", IDC_HIDE_FULLSCREEN, 15, 174, 270, 10
+    AUTOCHECKBOX    "Show the normal taskbar in screens&hots and screen sharing", IDC_EXCLUDE_CAPTURE, 15, 188, 270, 10
+    AUTOCHECKBOX    "Start OLEDbar when I sign &in", IDC_RUN_AT_STARTUP, 15, 202, 270, 10
+    AUTOCHECKBOX    "Detailed (debug) &logging", IDC_DEBUG_LOG, 15, 216, 270, 10
+
+    PUSHBUTTON      "&Restore defaults", IDC_DEFAULTS, 7, 240, 66, 14
+    PUSHBUTTON      "Settings fil&e...", IDC_OPEN_FILE, 77, 240, 62, 14
+    DEFPUSHBUTTON   "OK", IDOK, 147, 240, 46, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 197, 240, 46, 14
+    PUSHBUTTON      "A&pply", IDC_APPLY, 247, 240, 46, 14
+END
