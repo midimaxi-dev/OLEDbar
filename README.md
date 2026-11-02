@@ -175,6 +175,11 @@ This writes `OLEDbar-<version>-x64.zip`, `SHA256SUMS.txt` and, if [Inno Setup 6]
    ```
 3. The workflow checks that the tag matches the project version, builds, and creates a **draft** GitHub Release with the installer, zip and checksums. Review it on GitHub, then click **Publish**.
 
+## Known limitations
+
+- **Multiple monitors:** only the main taskbar (the one on your primary display) is dimmed. Extra taskbars shown with *Settings → Personalization → Taskbar → Show my taskbar on all displays* are not dimmed yet.
+- **Unsigned releases:** see [Before you install](#before-you-install-unsigned-releases).
+
 ## Troubleshooting
 
 - **Builds or tests are slow the first time:** Windows Defender / Smart App Control scans new unsigned executables on their first launch. Later runs are fast.
