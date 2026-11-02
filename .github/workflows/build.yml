@@ -14,15 +14,15 @@ jobs:
   build:
     runs-on: windows-2025
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Set up MSVC developer environment
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
         with:
           arch: x64
 
       - name: Set up CMake and Ninja
-        uses: lukka/get-cmake@latest
+        uses: lukka/get-cmake@f86dd60acae0d132056913e248bdabf0e0580b7a # v4.4.5
 
       - name: Configure vcpkg
         shell: pwsh
@@ -33,7 +33,7 @@ jobs:
           "VCPKG_DEFAULT_BINARY_CACHE=$cache" >> $env:GITHUB_ENV
 
       - name: Cache vcpkg packages
-        uses: actions/cache@v5
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
         with:
           path: vcpkg-cache
           key: vcpkg-x64-windows-static-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
@@ -63,7 +63,7 @@ jobs:
         shell: pwsh
         run: ./packaging/package.ps1
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: OLEDbar-packages
           path: out/dist/
@@ -76,13 +76,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: OLEDbar-packages
           path: dist
 
       # Created as a draft so the release notes and files can be checked before publishing.
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           draft: true
           body: |
