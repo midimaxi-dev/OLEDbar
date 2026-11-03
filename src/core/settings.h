@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "core/dim_state_machine.h"
+#include "core/hotkey.h"
 
 namespace dimmer {
 
@@ -21,6 +22,7 @@ struct Settings {
     bool hideInFullscreen = true;
     bool excludeFromCapture = true;
     bool debugLogging = false;  // JSON: "logLevel": "info" | "debug"
+    Hotkey toggleDesktopIconsHotkey;  // Off by default; JSON: "Ctrl+Alt+D" or "".
 
     bool operator==(const Settings&) const = default;
 };

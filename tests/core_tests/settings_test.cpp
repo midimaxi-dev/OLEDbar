@@ -94,6 +94,25 @@ TEST(SettingsTest, NonObjectIsInvalid) {
     EXPECT_FALSE(ParseSettings("").valid);
 }
 
+TEST(SettingsTest, ToggleDesktopIconsHotkey) {
+    EXPECT_FALSE(Settings{}.toggleDesktopIconsHotkey.IsSet());
+
+    Settings s;
+    s.toggleDesktopIconsHotkey = *dimmer::ParseHotkey("Ctrl+Alt+D");
+    const auto roundTrip = ParseSettings(SerializeSettings(s));
+    EXPECT_TRUE(roundTrip.warnings.empty());
+    EXPECT_EQ(roundTrip.settings, s);
+
+    EXPECT_FALSE(ParseSettings(R"({ "toggleDesktopIconsHotkey": "" })").settings.toggleDesktopIconsHotkey.IsSet());
+
+    for (const char* json : {R"({ "toggleDesktopIconsHotkey": "D" })", R"({ "toggleDesktopIconsHotkey": 68 })"}) {
+        const auto invalid = ParseSettings(json);
+        EXPECT_TRUE(invalid.valid);
+        EXPECT_EQ(invalid.warnings.size(), 1u) << json;
+        EXPECT_FALSE(invalid.settings.toggleDesktopIconsHotkey.IsSet());
+    }
+}
+
 TEST(SettingsTest, ToPolicyConvertsUnits) {
     Settings s;
     s.idleTimeoutSeconds = 12.5;

@@ -38,6 +38,8 @@ add_library(oledbar_core STATIC
     src/core/clock.h
     src/core/dim_state_machine.h
     src/core/dim_state_machine.cpp
+    src/core/hotkey.h
+    src/core/hotkey.cpp
     src/core/settings.h
     src/core/settings.cpp)
 target_include_directories(oledbar_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -49,6 +51,8 @@ add_library(oledbar_platform STATIC
     src/platform/log.cpp
     src/platform/win_util.h
     src/platform/win_util.cpp
+    src/platform/desktop_icons.h
+    src/platform/desktop_icons.cpp
     src/platform/taskbar_locator.h
     src/platform/taskbar_locator.cpp
     src/platform/overlay_window.h
@@ -87,6 +91,7 @@ if(OLEDBAR_BUILD_TESTS)
     find_package(GTest CONFIG REQUIRED)
     add_executable(core_tests
         tests/core_tests/dim_state_machine_test.cpp
+        tests/core_tests/hotkey_test.cpp
         tests/core_tests/settings_test.cpp)
     target_link_libraries(core_tests PRIVATE oledbar_core GTest::gtest GTest::gtest_main)
     oledbar_configure_target(core_tests)

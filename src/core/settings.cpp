@@ -17,6 +17,7 @@ constexpr const char* kKnownKeys[] = {
     "version",           "enabled",           "idleTimeoutSeconds", "redimDelaySeconds",
     "dimLevelPercent",   "fadeToDimMs",       "fadeToWakeMs",       "wakeOnTaskbarFocus",
     "wakeOnShellUi",     "hideInFullscreen",  "excludeFromCapture", "logLevel",
+    "toggleDesktopIconsHotkey",
 };
 
 class Reader {
@@ -72,6 +73,22 @@ public:
                                         debug ? "debug" : "info"));
     }
 
+    void HotkeyValue(const char* key, Hotkey& out) {
+        const auto it = json_.find(key);
+        if (it == json_.end()) {
+            return;
+        }
+        if (it->is_string()) {
+            if (const auto hotkey = ParseHotkey(it->get<std::string>())) {
+                out = *hotkey;
+                return;
+            }
+        }
+        warnings_.push_back(std::format(
+            "'{}' must be a shortcut with Ctrl or Alt, like \"Ctrl+Alt+D\", or \"\" for none; using \"{}\"", key,
+            FormatHotkey(out)));
+    }
+
 private:
     const Json& json_;
     std::vector<std::string>& warnings_;
@@ -110,6 +127,7 @@ SettingsParseResult ParseSettings(std::string_view text) {
     read.Bool("hideInFullscreen", s.hideInFullscreen);
     read.Bool("excludeFromCapture", s.excludeFromCapture);
     read.LogLevel("logLevel", s.debugLogging);
+    read.HotkeyValue("toggleDesktopIconsHotkey", s.toggleDesktopIconsHotkey);
 
     const auto version = json.find("version");
     if (version != json.end() && version->is_number_integer() && version->get<int>() > kSchemaVersion) {
@@ -141,6 +159,7 @@ std::string SerializeSettings(const Settings& s) {
     json["hideInFullscreen"] = s.hideInFullscreen;
     json["excludeFromCapture"] = s.excludeFromCapture;
     json["logLevel"] = s.debugLogging ? "debug" : "info";
+    json["toggleDesktopIconsHotkey"] = FormatHotkey(s.toggleDesktopIconsHotkey);
     return json.dump(2) + "\n";
 }
 

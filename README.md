@@ -8,12 +8,13 @@ After a few seconds without the mouse on the taskbar, a dark, click-through laye
 
 > **Status:** version 0.1.0, a usable early release.
 
-- A single native ~670 KB EXE using about 0.1 MB of memory when idle. No admin rights and no runtime to install; use the installer or the portable zip.
+- A single native ~685 KB EXE using about 0.1 MB of memory when idle. No admin rights and no runtime to install; use the installer or the portable zip.
 - No injection into Explorer: it only draws a click-through layer above the taskbar.
 - Settings panel with a live preview of the dim level on your taskbar.
 - Never darkens fullscreen apps and videos; hides itself for auto-hidden taskbars.
 - Screenshots and screen sharing show the normal, undimmed taskbar.
 - Pauses itself while the PC is locked or the screen is off.
+- Optional keyboard shortcut (and tray menu item) to show or hide the desktop icons.
 
 ## Download and install
 
@@ -106,7 +107,7 @@ Use the `x64-release` presets for a smaller, optimized build.
 .\out\build\x64-debug\OLEDbar.exe
 ```
 
-Or press **F5** in VS Code to run it under the debugger. For everyday use, build the release preset (`cmake --preset x64-release; cmake --build --preset x64-release`) and run `out\build\x64-release\OLEDbar.exe`. It's a single ~670 KB EXE, and you can copy it anywhere.
+Or press **F5** in VS Code to run it under the debugger. For everyday use, build the release preset (`cmake --preset x64-release; cmake --build --preset x64-release`) and run `out\build\x64-release\OLEDbar.exe`. It's a single ~685 KB EXE, and you can copy it anywhere.
 
 On first run, a notification tells you OLEDbar is running and where to find its tray icon.
 
@@ -119,6 +120,7 @@ On first run, a notification tells you OLEDbar is running and where to find its 
 |---|---|
 | Pause ▸ | For 15 minutes, for 1 hour, or until you resume. Shows **Resume** while paused |
 | Dim now | Dim immediately (useful for testing) |
+| Toggle desktop icons | Show or hide the desktop icons, like the desktop's *View → Show desktop icons*. Shows your shortcut, if set |
 | Settings... | Open the settings panel |
 | Open log | Open `%LOCALAPPDATA%\OLEDbar\logs\oledbar.log` (state changes, taskbar, fullscreen, session and settings events) |
 | Exit | Quit |
@@ -129,6 +131,7 @@ The **settings panel** covers everything:
 - dim level, with a live preview on the taskbar while you drag the slider;
 - delays and fade durations;
 - behavior options;
+- a **keyboard shortcut to toggle desktop icons** (off until you set one; Ctrl+Alt+D is a good choice);
 - **Start OLEDbar when I sign in**.
 
 Press **OK** or **Apply** to save; **Restore defaults** resets the controls.
@@ -148,6 +151,9 @@ The same settings are stored in `%LOCALAPPDATA%\OLEDbar\settings.json` (the pane
 | `hideInFullscreen` | `true` | Never darken fullscreen apps and videos |
 | `excludeFromCapture` | `true` | Screenshots and screen sharing show the normal taskbar |
 | `logLevel` | `"info"` | `"debug"` also logs every foreground-window change and hover, for troubleshooting |
+| `toggleDesktopIconsHotkey` | `""` | Global shortcut that shows/hides desktop icons, e.g. `"Ctrl+Alt+D"`. Needs Ctrl or Alt; `""` turns it off. Works even while dimming is paused or disabled |
+
+If the shortcut is already taken by another app, OLEDbar tells you and leaves it unassigned; pick a different one.
 
 Invalid JSON is reported and ignored: OLEDbar keeps the previous settings (defaults at startup) and doesn't touch your file. `//` comments are allowed, but saving from the settings panel rewrites the file without them.
 
@@ -187,8 +193,8 @@ This writes `OLEDbar-<version>-x64.zip`, `SHA256SUMS.txt` and, if [Inno Setup 6]
 ## Project layout
 
 ```
-src/core/        Pure C++: dimming state machine and settings parsing (no Windows headers, unit tested)
-src/platform/    Win32: overlay window, taskbar locator, input and shell events, settings file, run at startup, logging
+src/core/        Pure C++: dimming state machine, settings and shortcut parsing (no Windows headers, unit tested)
+src/platform/    Win32: overlay window, taskbar locator, input and shell events, settings file, run at startup, desktop icons, logging
 src/app/         WinMain, tray icon, settings panel (dialog + .rc), wiring (AppHost), manifest
 tests/           GoogleTest unit tests
 packaging/       package.ps1 (zip + installer) and installer/oledbar.iss (Inno Setup)

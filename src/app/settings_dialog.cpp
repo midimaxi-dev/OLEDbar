@@ -72,6 +72,29 @@ void ShowFieldError(HWND edit, const std::wstring& text) {
     SetFocus(edit);
 }
 
+// The hotkey control uses HOTKEYF_* bits; Hotkey uses MOD_* bits.
+void SetHotkeyControl(HWND dialog, int id, const Hotkey& hotkey) {
+    BYTE flags = 0;
+    flags |= (hotkey.modifiers & Hotkey::kCtrl) ? HOTKEYF_CONTROL : 0;
+    flags |= (hotkey.modifiers & Hotkey::kAlt) ? HOTKEYF_ALT : 0;
+    flags |= (hotkey.modifiers & Hotkey::kShift) ? HOTKEYF_SHIFT : 0;
+    SendDlgItemMessageW(dialog, id, HKM_SETHOTKEY, MAKEWORD(static_cast<BYTE>(hotkey.key), flags), 0);
+}
+
+Hotkey GetHotkeyControl(HWND dialog, int id) {
+    const auto value = static_cast<WORD>(SendDlgItemMessageW(dialog, id, HKM_GETHOTKEY, 0, 0));
+    const BYTE flags = HIBYTE(value);
+    Hotkey hotkey;
+    hotkey.key = LOBYTE(value);
+    if (hotkey.key == 0) {
+        return {};
+    }
+    hotkey.modifiers |= (flags & HOTKEYF_CONTROL) ? Hotkey::kCtrl : 0;
+    hotkey.modifiers |= (flags & HOTKEYF_ALT) ? Hotkey::kAlt : 0;
+    hotkey.modifiers |= (flags & HOTKEYF_SHIFT) ? Hotkey::kShift : 0;
+    return hotkey;
+}
+
 }  // namespace
 
 bool SettingsDialog::Show(HINSTANCE instance, const Settings& settings, bool runAtStartup, Callbacks callbacks) {
@@ -152,6 +175,10 @@ INT_PTR SettingsDialog::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam
         case IDC_DEFAULTS:
             Load(Settings{}, GetCheck(hwnd_, IDC_RUN_AT_STARTUP));
             return TRUE;
+        case IDC_DESKTOP_ICONS_CLEAR:
+            SetHotkeyControl(hwnd_, IDC_DESKTOP_ICONS_HOTKEY, Hotkey{});
+            SetFocus(GetDlgItem(hwnd_, IDC_DESKTOP_ICONS_HOTKEY));
+            return TRUE;
         case IDC_OPEN_FILE:
             if (callbacks_.openFile) {
                 callbacks_.openFile();
@@ -190,6 +217,10 @@ void SettingsDialog::InitializeControls() {
         SendDlgItemMessageW(hwnd_, field.edit, EM_SETLIMITTEXT, 8, 0);
     }
 
+    // Keys pressed without Ctrl or Alt become Ctrl+Alt+key, so the shortcut can't swallow normal typing.
+    SendDlgItemMessageW(hwnd_, IDC_DESKTOP_ICONS_HOTKEY, HKM_SETRULES, HKCOMB_NONE | HKCOMB_S,
+                        MAKELPARAM(HOTKEYF_CONTROL | HOTKEYF_ALT, 0));
+
     HICON icon = nullptr;
     const HINSTANCE instance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(hwnd_, GWLP_HINSTANCE));
     if (SUCCEEDED(LoadIconMetric(instance, MAKEINTRESOURCEW(IDI_APP), LIM_SMALL, &icon))) {
@@ -216,6 +247,7 @@ void SettingsDialog::Load(const Settings& settings, bool runAtStartup) {
     SetCheck(hwnd_, IDC_EXCLUDE_CAPTURE, settings.excludeFromCapture);
     SetCheck(hwnd_, IDC_RUN_AT_STARTUP, runAtStartup);
     SetCheck(hwnd_, IDC_DEBUG_LOG, settings.debugLogging);
+    SetHotkeyControl(hwnd_, IDC_DESKTOP_ICONS_HOTKEY, settings.toggleDesktopIconsHotkey);
 }
 
 bool SettingsDialog::Read(Settings& settings, bool& runAtStartup) {
@@ -231,6 +263,12 @@ bool SettingsDialog::Read(Settings& settings, bool& runAtStartup) {
         }
         values[i] = *value;
     }
+    const Hotkey hotkey = GetHotkeyControl(hwnd_, IDC_DESKTOP_ICONS_HOTKEY);
+    if (!hotkey.IsValid()) {
+        MessageBoxW(hwnd_, L"The desktop icons shortcut needs Ctrl or Alt.", L"OLEDbar", MB_OK | MB_ICONWARNING);
+        SetFocus(GetDlgItem(hwnd_, IDC_DESKTOP_ICONS_HOTKEY));
+        return false;
+    }
 
     settings.enabled = GetCheck(hwnd_, IDC_ENABLED);
     settings.dimLevelPercent = DimLevel();
@@ -243,6 +281,7 @@ bool SettingsDialog::Read(Settings& settings, bool& runAtStartup) {
     settings.hideInFullscreen = GetCheck(hwnd_, IDC_HIDE_FULLSCREEN);
     settings.excludeFromCapture = GetCheck(hwnd_, IDC_EXCLUDE_CAPTURE);
     settings.debugLogging = GetCheck(hwnd_, IDC_DEBUG_LOG);
+    settings.toggleDesktopIconsHotkey = hotkey;
     runAtStartup = GetCheck(hwnd_, IDC_RUN_AT_STARTUP);
     return true;
 }

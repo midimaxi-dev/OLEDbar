@@ -37,7 +37,7 @@ BEGIN
     END
 END
 
-IDD_SETTINGS DIALOGEX 0, 0, 300, 261
+IDD_SETTINGS DIALOGEX 0, 0, 300, 309
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "OLEDbar Settings"
@@ -70,9 +70,15 @@ BEGIN
     AUTOCHECKBOX    "Start OLEDbar when I sign &in", IDC_RUN_AT_STARTUP, 15, 202, 270, 10
     AUTOCHECKBOX    "Detailed (debug) &logging", IDC_DEBUG_LOG, 15, 216, 270, 10
 
-    PUSHBUTTON      "&Restore defaults", IDC_DEFAULTS, 7, 240, 66, 14
-    PUSHBUTTON      "Settings fil&e...", IDC_OPEN_FILE, 77, 240, 62, 14
-    DEFPUSHBUTTON   "OK", IDOK, 147, 240, 46, 14
-    PUSHBUTTON      "Cancel", IDCANCEL, 197, 240, 46, 14
-    PUSHBUTTON      "A&pply", IDC_APPLY, 247, 240, 46, 14
+    GROUPBOX        "Keyboard shortcut", IDC_STATIC, 7, 236, 286, 46
+    LTEXT           "Toggle desktop ic&ons:", IDC_STATIC, 15, 252, 80, 8
+    CONTROL         "", IDC_DESKTOP_ICONS_HOTKEY, HOTKEY_CLASS, WS_BORDER | WS_TABSTOP, 96, 250, 140, 12
+    PUSHBUTTON      "&Clear", IDC_DESKTOP_ICONS_CLEAR, 240, 249, 45, 14
+    LTEXT           "Off unless set. Click the box and press keys, for example Ctrl+Alt+D.", IDC_STATIC, 15, 267, 270, 8
+
+    PUSHBUTTON      "&Restore defaults", IDC_DEFAULTS, 7, 288, 66, 14
+    PUSHBUTTON      "Settings fil&e...", IDC_OPEN_FILE, 77, 288, 62, 14
+    DEFPUSHBUTTON   "OK", IDOK, 147, 288, 46, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 197, 288, 46, 14
+    PUSHBUTTON      "A&pply", IDC_APPLY, 247, 288, 46, 14
 END

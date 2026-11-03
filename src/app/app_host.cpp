@@ -12,6 +12,7 @@
 #include <string>
 #include <string_view>
 
+#include "platform/desktop_icons.h"
 #include "platform/log.h"
 #include "platform/startup.h"
 #include "platform/win_util.h"
@@ -46,6 +47,9 @@ constexpr UINT kPreviewMs = 1500;
 constexpr UINT kTrimDelayMs = 5000;
 constexpr ULONGLONG kTicksPerMs = 10'000;  // FILETIME units are 100 ns.
 
+constexpr int kHotkeyDesktopIcons = 1;
+static_assert(Hotkey::kAlt == MOD_ALT && Hotkey::kCtrl == MOD_CONTROL && Hotkey::kShift == MOD_SHIFT);
+
 // GUID_SESSION_DISPLAY_STATUS; defined locally to avoid INITGUID.
 constexpr GUID kSessionDisplayStatus = {0x2B84C20E, 0xAD23, 0x4DDF, {0x93, 0xDB, 0x05, 0xFF, 0xBD, 0x7E, 0xFC, 0xA5}};
 
@@ -55,6 +59,7 @@ enum MenuCommand : UINT {
     kCmdPauseUntilResumed,
     kCmdResume,
     kCmdDimNow,
+    kCmdToggleDesktopIcons,
     kCmdSettings,
     kCmdOpenLog,
     kCmdExit,
@@ -233,6 +238,7 @@ void AppHost::Shutdown() {
     }
     shutDown_ = true;
     settingsDialog_.Close();
+    SetDesktopIconsHotkey(Hotkey{});
     tray_.Remove();
     UnregisterAppBar();
     shell_.Stop();
@@ -285,13 +291,49 @@ void AppHost::ApplySettings(const Settings& settings) {
     }
     RecomputeSuppression();
     UpdateTray();
+    if (!SetDesktopIconsHotkey(settings_.toggleDesktopIconsHotkey)) {
+        tray_.Notify(L"OLEDbar shortcut unavailable",
+                     std::format(L"{} is already used by another app. Choose a different shortcut in Settings.",
+                                 Widen(FormatHotkey(settings_.toggleDesktopIconsHotkey))),
+                     true);
+    }
     log::Info(L"Settings applied: enabled={} idle={}s redim={}s dim={}% fadeToDim={}ms fadeToWake={}ms "
-              L"taskbarFocus={} shellUi={} hideInFullscreen={} excludeFromCapture={} logLevel={}",
+              L"taskbarFocus={} shellUi={} hideInFullscreen={} excludeFromCapture={} logLevel={} "
+              L"desktopIconsHotkey=\"{}\"",
               settings_.enabled, settings_.idleTimeoutSeconds, settings_.redimDelaySeconds,
               settings_.dimLevelPercent, settings_.fadeToDimMs, settings_.fadeToWakeMs,
               settings_.wakeOnTaskbarFocus, settings_.wakeOnShellUi, settings_.hideInFullscreen,
-              settings_.excludeFromCapture, settings_.debugLogging ? L"debug" : L"info");
+              settings_.excludeFromCapture, settings_.debugLogging ? L"debug" : L"info",
+              Widen(FormatHotkey(settings_.toggleDesktopIconsHotkey)));
     Sync();
+}
+
+bool AppHost::SetDesktopIconsHotkey(const Hotkey& hotkey) {
+    if (hotkey == registeredHotkey_) {
+        return true;
+    }
+    if (registeredHotkey_.IsSet()) {
+        UnregisterHotKey(hwnd_, kHotkeyDesktopIcons);
+        registeredHotkey_ = {};
+    }
+    if (!hotkey.IsSet()) {
+        return true;
+    }
+    // MOD_NOREPEAT: holding the keys down toggles once, not repeatedly.
+    if (!RegisterHotKey(hwnd_, kHotkeyDesktopIcons, hotkey.modifiers | MOD_NOREPEAT, hotkey.key)) {
+        log::Info(L"Shortcut {} could not be registered ({})", Widen(FormatHotkey(hotkey)), GetLastError());
+        return false;
+    }
+    registeredHotkey_ = hotkey;
+    return true;
+}
+
+void AppHost::OnToggleDesktopIcons(const wchar_t* source) {
+    if (ToggleDesktopIcons()) {
+        log::Info(L"Desktop icons toggled ({})", source);
+    } else {
+        log::Info(L"Desktop icons could not be toggled ({}): {}", source, GetLastError());
+    }
 }
 
 void AppHost::Pause(PauseMode mode, UINT minutes) {
@@ -338,7 +380,7 @@ void AppHost::ShowSettings() {
     log::Debug(L"Settings panel requested");
     // comctl32 is delay-loaded, so it is only mapped once the panel is first opened.
     static const bool commonControlsReady = [] {
-        INITCOMMONCONTROLSEX init{sizeof(init), ICC_BAR_CLASSES | ICC_UPDOWN_CLASS};
+        INITCOMMONCONTROLSEX init{sizeof(init), ICC_BAR_CLASSES | ICC_UPDOWN_CLASS | ICC_HOTKEY_CLASS};
         return InitCommonControlsEx(&init) != FALSE;
     }();
     if (!commonControlsReady) {
@@ -370,8 +412,19 @@ void AppHost::ShowSettings() {
 }
 
 bool AppHost::ApplyFromDialog(const Settings& settings, bool runAtStartup) {
+    // Claim the shortcut first, so a conflict keeps the dialog open and nothing is saved.
+    if (!SetDesktopIconsHotkey(settings.toggleDesktopIconsHotkey)) {
+        SetDesktopIconsHotkey(settings_.toggleDesktopIconsHotkey);
+        MessageBoxW(settingsDialog_.Hwnd(),
+                    std::format(L"{} is already used by another app. Choose a different shortcut.",
+                                Widen(FormatHotkey(settings.toggleDesktopIconsHotkey)))
+                        .c_str(),
+                    L"OLEDbar", MB_OK | MB_ICONWARNING);
+        return false;
+    }
     if (!settingsStore_.Save(settings)) {
         log::Info(L"Saving settings failed ({})", GetLastError());
+        SetDesktopIconsHotkey(settings_.toggleDesktopIconsHotkey);
         MessageBoxW(settingsDialog_.Hwnd(), (L"Could not save " + settingsStore_.Path()).c_str(), L"OLEDbar",
                     MB_OK | MB_ICONERROR);
         return false;
@@ -466,6 +519,12 @@ LRESULT AppHost::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
 
     case WM_TIMER:
         OnTimer(static_cast<UINT_PTR>(wParam));
+        return 0;
+
+    case WM_HOTKEY:
+        if (wParam == kHotkeyDesktopIcons) {
+            OnToggleDesktopIcons(L"shortcut");
+        }
         return 0;
 
     case kTrayMessage:
@@ -829,6 +888,13 @@ void AppHost::ShowTrayMenu(POINT anchor) {
     const bool canDim = machine_.State() != DimState::Suppressed;
     AppendMenuW(menu.get(), MF_STRING | (canDim ? MF_ENABLED : MF_GRAYED), kCmdDimNow, L"Dim now");
     AppendMenuW(menu.get(), MF_SEPARATOR, 0, nullptr);
+    // The shortcut is shown right-aligned after the tab.
+    std::wstring toggleText = L"Toggle &desktop icons";
+    if (registeredHotkey_.IsSet()) {
+        toggleText += L"\t" + Widen(FormatHotkey(registeredHotkey_));
+    }
+    AppendMenuW(menu.get(), MF_STRING, kCmdToggleDesktopIcons, toggleText.c_str());
+    AppendMenuW(menu.get(), MF_SEPARATOR, 0, nullptr);
     AppendMenuW(menu.get(), MF_STRING, kCmdSettings, L"&Settings...");
     SetMenuDefaultItem(menu.get(), kCmdSettings, FALSE);
     AppendMenuW(menu.get(), MF_STRING, kCmdOpenLog, L"Open log");
@@ -858,6 +924,9 @@ void AppHost::ShowTrayMenu(POINT anchor) {
     case kCmdDimNow:
         UpdateFullscreen();
         machine_.DimNow();
+        break;
+    case kCmdToggleDesktopIcons:
+        OnToggleDesktopIcons(L"tray menu");
         break;
     case kCmdSettings:
         ShowSettings();
