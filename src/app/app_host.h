@@ -44,6 +44,9 @@ private:
 
     void ReloadSettings(bool startup);
     void ApplySettings(const Settings& settings);
+    // Registers `hotkey` in place of the current one (unset = none). On failure no shortcut is registered.
+    bool SetDesktopIconsHotkey(const Hotkey& hotkey);
+    void OnToggleDesktopIcons(const wchar_t* source);
     void Pause(PauseMode mode, UINT minutes);
     void Resume();
     void UpdateTray();
@@ -76,6 +79,7 @@ private:
     TrayIcon tray_;
     SettingsStore settingsStore_;
     Settings settings_;
+    Hotkey registeredHotkey_;
     SettingsDialog settingsDialog_;
     std::optional<double> previewLevel_;
 
