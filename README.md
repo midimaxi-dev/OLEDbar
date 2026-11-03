@@ -6,7 +6,7 @@
 
 After a few seconds without the mouse on the taskbar, a dark, click-through layer fades in over it. This dims the background, icons, text, clock and tray. Move the mouse onto the taskbar, or open Start or Search, and it returns to full brightness immediately.
 
-> **Status:** version 0.2.0, a usable early release.
+> **Status:** version 0.2.1, a usable early release.
 
 - A single native ~685 KB EXE using about 0.1 MB of memory when idle. No admin rights and no runtime to install; use the installer or the portable zip.
 - No injection into Explorer: it only draws a click-through layer above the taskbar.
@@ -35,7 +35,7 @@ OLEDbar releases are **not code-signed yet** (signing is planned), so Windows ma
 - **Smart App Control** (*"blocked to help protect you"*, with no *Run anyway* button): it judges each file by reputation, so unsigned apps may or may not be blocked. If OLEDbar is blocked, you can turn it off under **Windows Security → App & browser control → Smart App control settings**.
   - ⚠️ On many Windows 11 builds it **cannot be turned back on** without resetting Windows. Newer builds allow it. Only do this if you accept that trade-off; otherwise wait for a signed release.
 
-To check that a download is genuine, compare its hash with `SHA256SUMS.txt`, e.g. `Get-FileHash .\OLEDbar-0.2.0-x64-setup.exe`.
+To check that a download is genuine, compare its hash with `SHA256SUMS.txt`, e.g. `Get-FileHash .\OLEDbar-0.2.1-x64-setup.exe`.
 
 ## Uninstall
 
@@ -109,7 +109,7 @@ Use the `x64-release` presets for a smaller, optimized build.
 
 Or press **F5** in VS Code to run it under the debugger. For everyday use, build the release preset (`cmake --preset x64-release; cmake --build --preset x64-release`) and run `out\build\x64-release\OLEDbar.exe`. It's a single ~685 KB EXE, and you can copy it anywhere.
 
-On first run, a notification tells you OLEDbar is running and where to find its tray icon.
+Whenever OLEDbar starts, a notification tells you it is running and where to find its tray icon, even if you already have saved settings. Windows notification settings or Do not disturb may hide it.
 
 - Run it from a **normal (non-admin)** terminal. An elevated copy can't be stopped or rebuilt from a normal terminal.
 - Only one copy runs at a time; launching it again opens the settings panel of the running copy. **Exit** it from the tray menu before rebuilding, otherwise linking `OLEDbar.exe` fails.

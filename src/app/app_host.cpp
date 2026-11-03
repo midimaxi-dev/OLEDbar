@@ -209,14 +209,6 @@ bool AppHost::Initialize() {
         log::Info(L"Settings file unavailable ({}); using defaults", GetLastError());
     }
     ReloadSettings(true);
-    if (settingsStore_.CreatedNew()) {
-        // First run: the app has no window, so say where it went.
-        tray_.Notify(L"OLEDbar is running",
-                     std::format(L"The taskbar dims after {} s without the mouse on it. Click the OLEDbar icon in "
-                                 L"the system tray (it may be behind ^) for settings.",
-                                 settings_.idleTimeoutSeconds),
-                     false);
-    }
 
     // Registration immediately delivers the current display state, so the taskbar must be known by now.
     sessionNotifications_ = WTSRegisterSessionNotification(hwnd_, NOTIFY_FOR_THIS_SESSION) != FALSE;
@@ -229,6 +221,11 @@ bool AppHost::Initialize() {
     OnForeground(GetForegroundWindow());
     Sync();
     SetTimer(hwnd_, kTimerTrim, kTrimDelayMs, nullptr);
+    tray_.Notify(L"OLEDbar is running",
+                 std::format(L"The taskbar dims after {} s without the mouse on it. Click the OLEDbar icon in "
+                             L"the system tray (it may be behind ^) for settings.",
+                             settings_.idleTimeoutSeconds),
+                 false);
     return true;
 }
 
