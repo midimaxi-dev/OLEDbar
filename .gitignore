@@ -4,5 +4,8 @@ build/
 vcpkg_installed/
 *.user
 
-# Local design notes, not published
+# Local design notes are not published; the README screenshot is an exception.
 docs/
+!/docs/
+/docs/*
+!/docs/Screenshot-OLEDbar-settings.png

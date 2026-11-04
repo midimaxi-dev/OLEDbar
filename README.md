@@ -2,19 +2,28 @@
 
 [![Build](https://github.com/midimaxi-dev/OLEDbar/actions/workflows/build.yml/badge.svg)](https://github.com/midimaxi-dev/OLEDbar/actions/workflows/build.yml)
 
-**Dims the Windows 11 taskbar when you're not using it, to prevent OLED burn-in while keeping the taskbar always visible.**
+**Helps reduce the risk of OLED taskbar burn-in while keeping the taskbar visible.**
 
-After a few seconds without the mouse on the taskbar, a dark, click-through layer fades in over it. This dims the background, icons, text, clock and tray. Move the mouse onto the taskbar, or open Start or Search, and it returns to full brightness immediately.
+After a few seconds without the mouse on the Windows 11 taskbar, a dark, click-through layer fades in over it. This dims the background, icons, text, clock and tray. By default, moving the mouse onto the taskbar or opening Start or Search brings it back to full brightness.
 
 > **Status:** version 0.2.1, a usable early release.
 
-- A single native ~685 KB EXE using about 0.1 MB of memory when idle. No admin rights and no runtime to install; use the installer or the portable zip.
+- **Tiny footprint, not a heavy suite:** a **~685 KB release EXE**, using only **about 1 MB of memory** while idle (as shown in Task Manager). No runtime to install; no admin rights required.
 - No injection into Explorer: it only draws a click-through layer above the taskbar.
 - Settings panel with a live preview of the dim level on your taskbar.
-- Never darkens fullscreen apps and videos; hides itself for auto-hidden taskbars.
-- Screenshots and screen sharing show the normal, undimmed taskbar.
+- By default, hides the overlay for fullscreen apps and when the taskbar is auto-hidden.
+- By default, keeps the dimming overlay out of supported screenshots and screen sharing.
 - Pauses itself while the PC is locked or the screen is off.
 - Optional keyboard shortcut (and tray menu item) to show or hide the desktop icons.
+
+## Who this is for
+
+**OLEDbar is for you if:**
+
+- you use an OLED laptop or monitor on Windows 11
+- you don't want taskbar auto-hide
+- you want a tiny utility, not a heavy suite
+- you care about reducing static UI brightness
 
 ## Download and install
 
@@ -25,17 +34,29 @@ Get the latest version from **[Releases](https://github.com/midimaxi-dev/OLEDbar
 | `OLEDbar-<version>-x64-setup.exe` | Most people. Installs for your user only, no admin rights. Adds a Start menu entry, can start OLEDbar when you sign in, and appears in *Settings → Apps* for uninstalling. |
 | `OLEDbar-<version>-x64.zip` | Portable use. Unzip anywhere and run `OLEDbar.exe`. Turn on *Start OLEDbar when I sign in* in its settings if you like. |
 
-`SHA256SUMS.txt` lists checksums for both files.
+`SHA256SUMS.txt` lists checksums for both files. To verify a download, compare its hash with the matching entry, for example: `Get-FileHash .\OLEDbar-0.2.1-x64-setup.exe`.
 
-### Unsigned releases
+Windows may warn about unsigned releases; see [Unsigned releases](#unsigned-releases).
 
-OLEDbar releases are **not code-signed yet** (signing is planned), so Windows may warn about them. Only act if you actually see a warning:
+## Settings
 
-- **SmartScreen** (*"Windows protected your PC"*): click **More info → Run anyway**. For the zip, you can also right-click it → *Properties* → tick **Unblock** before extracting.
-- **Smart App Control** (*"blocked to help protect you"*, with no *Run anyway* button): it judges each file by reputation, so unsigned apps may or may not be blocked. If OLEDbar is blocked, you can turn it off under **Windows Security → App & browser control → Smart App control settings**.
-  - ⚠️ On many Windows 11 builds it **cannot be turned back on** without resetting Windows. Newer builds allow it. Only do this if you accept that trade-off; otherwise wait for a signed release.
+Left-click the OLEDbar tray icon to open the settings panel. The icon may be hidden behind the **^** arrow.
 
-To check that a download is genuine, compare its hash with `SHA256SUMS.txt`, e.g. `Get-FileHash .\OLEDbar-0.2.1-x64-setup.exe`.
+![OLEDbar settings panel with dimming, behavior and keyboard shortcut options](docs/Screenshot-OLEDbar-settings.png)
+
+Adjust the dim level with a live preview, change delays and fade durations, or choose behavior options. You can also start OLEDbar when you sign in and set a keyboard shortcut to toggle desktop icons (off by default; for example, Ctrl+Alt+D).
+
+Press **OK** or **Apply** to save; **Restore defaults** resets the controls. For advanced configuration, see [Settings file](#settings-file).
+
+## FAQ
+
+- **Does it work with auto-hide?** Yes. The overlay hides while the taskbar is hidden and can resume when it reappears.
+- **Does it affect fullscreen apps?** By default, OLEDbar hides its overlay when it detects a fullscreen app or video.
+- **Does it show up in screenshots?** Normally not. By default, OLEDbar asks Windows to exclude the dimming overlay from screenshots and screen sharing; you can change this in Settings.
+- **Does it support multi-monitor?** Yes, but only the primary display's taskbar is dimmed. Additional taskbars are not dimmed yet.
+- **Does it require admin rights?** No. Both the per-user installer and the portable app run without administrator rights.
+- **Is it signed?** Current releases are unsigned. Windows may warn or block them; if Smart App Control blocks OLEDbar, wait for a signed release.
+- **Does it send data anywhere?** No. OLEDbar makes no network connections; settings and logs are stored locally in `%LOCALAPPDATA%\OLEDbar`.
 
 ## Uninstall
 
@@ -44,16 +65,7 @@ To check that a download is genuine, compare its hash with `SHA256SUMS.txt`, e.g
 
 ## Privacy
 
-This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. OLEDbar makes no network connections. It only stores its settings and log in `%LOCALAPPDATA%\OLEDbar`, plus the optional *Start when I sign in* entry in your user's registry.
-
-## Code signing policy
-
-Releases are currently **unsigned**. Free code signing through the SignPath Foundation has been requested; once granted, this section will carry their attribution.
-
-- Signed files are built by GitHub Actions from this repository's source code ([.github/workflows/build.yml](.github/workflows/build.yml)). Nothing built locally is signed.
-- Committers and reviewers: [midimaxi-dev](https://github.com/midimaxi-dev)
-- Approvers (who approve each release for signing): [midimaxi-dev](https://github.com/midimaxi-dev)
-- All team members use multi-factor authentication for GitHub and SignPath.
+OLEDbar makes no network connections. It stores settings and logs locally in `%LOCALAPPDATA%\OLEDbar`; the optional *Start when I sign in* entry is stored in your user's registry.
 
 ## Building from source
 
@@ -125,16 +137,7 @@ Whenever OLEDbar starts, a notification tells you it is running and where to fin
 | Open log | Open `%LOCALAPPDATA%\OLEDbar\logs\oledbar.log` (state changes, taskbar, fullscreen, session and settings events) |
 | Exit | Quit |
 
-## Settings
-
-The **settings panel** covers everything:
-- dim level, with a live preview on the taskbar while you drag the slider;
-- delays and fade durations;
-- behavior options;
-- a **keyboard shortcut to toggle desktop icons** (off until you set one; Ctrl+Alt+D is a good choice);
-- **Start OLEDbar when I sign in**.
-
-Press **OK** or **Apply** to save; **Restore defaults** resets the controls.
+## Settings file
 
 The same settings are stored in `%LOCALAPPDATA%\OLEDbar\settings.json` (the panel's **Settings file...** button opens it). If you edit and save the file directly, the changes apply immediately, with no restart. If something is wrong, a notification appears and the details go to the log.
 
@@ -148,8 +151,8 @@ The same settings are stored in `%LOCALAPPDATA%\OLEDbar\settings.json` (the pane
 | `fadeToWakeMs` | `120` | Fade-in duration when you hover (0–5000) |
 | `wakeOnTaskbarFocus` | `true` | Wake when the taskbar gets keyboard focus (Win+T, clicking it) |
 | `wakeOnShellUi` | `true` | Stay bright while Start, Search or Quick Settings is open |
-| `hideInFullscreen` | `true` | Never darken fullscreen apps and videos |
-| `excludeFromCapture` | `true` | Screenshots and screen sharing show the normal taskbar |
+| `hideInFullscreen` | `true` | Hide the overlay when a fullscreen app or video is detected |
+| `excludeFromCapture` | `true` | Exclude the overlay from supported screenshots and screen sharing |
 | `logLevel` | `"info"` | `"debug"` also logs every foreground-window change and hover, for troubleshooting |
 | `toggleDesktopIconsHotkey` | `""` | Global shortcut that shows/hides desktop icons, e.g. `"Ctrl+Alt+D"`. Needs Ctrl or Alt; `""` turns it off. Works even while dimming is paused or disabled |
 
@@ -182,11 +185,10 @@ This writes `OLEDbar-<version>-x64.zip`, `SHA256SUMS.txt` and, if [Inno Setup 6]
 ## Known limitations
 
 - **Multiple monitors:** only the main taskbar (the one on your primary display) is dimmed. Extra taskbars shown with *Settings → Personalization → Taskbar → Show my taskbar on all displays* are not dimmed yet.
-- **Unsigned releases:** see [Unsigned releases](#unsigned-releases).
 
 ## Troubleshooting
 
-- **Builds or tests are slow the first time:** Windows Defender / Smart App Control scans new unsigned executables on their first launch. Later runs are fast.
+- **Builds or tests are slow the first time:** Windows security software may scan newly built executables on their first launch. Later runs are usually faster.
 - **`winget` says "No available upgrade found":** Build Tools are already installed. Add the missing components with the Visual Studio Installer (see Setup).
 - **The installer exits with code 5007:** a `--passive` install was run from a non-elevated terminal. Use an admin terminal, or drop `--passive` so the installer can ask for elevation itself.
 
@@ -200,6 +202,17 @@ tests/           GoogleTest unit tests
 packaging/       package.ps1 (zip + installer) and installer/oledbar.iss (Inno Setup)
 .github/         GitHub Actions workflow (build, test, package, draft release on tags)
 ```
+
+## Code signing policy
+
+### Unsigned releases
+
+Releases are currently unsigned. Free code signing through the SignPath Foundation has been requested; once granted, this section will carry their attribution.
+
+- Signed files are built by GitHub Actions from this repository's source code ([.github/workflows/build.yml](.github/workflows/build.yml)). Nothing built locally is signed.
+- Committers and reviewers: [midimaxi-dev](https://github.com/midimaxi-dev)
+- Approvers (who approve each release for signing): [midimaxi-dev](https://github.com/midimaxi-dev)
+- All team members use multi-factor authentication for GitHub and SignPath.
 
 ## License
 
