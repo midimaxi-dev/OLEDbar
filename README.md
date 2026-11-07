@@ -2,7 +2,7 @@
 
 [![Build](https://github.com/midimaxi-dev/OLEDbar/actions/workflows/build.yml/badge.svg)](https://github.com/midimaxi-dev/OLEDbar/actions/workflows/build.yml)
 
-**Helps reduce the risk of OLED taskbar burn-in while keeping the taskbar visible.** [Website and live demo](https://midimaxi-dev.github.io/OLEDbar/)
+**Helps reduce the risk of OLED taskbar burn-in while keeping the taskbar visible.** [Check OLEDbar Website](https://midimaxi-dev.github.io/OLEDbar/)
 
 After a few seconds without the mouse on the Windows 11 taskbar, a dark, click-through layer fades in over it. This dims the background, icons, text, clock and tray. By default, moving the mouse onto the taskbar or opening Start or Search brings it back to full brightness.
 
