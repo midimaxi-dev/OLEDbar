@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OLEDbar: dim the Windows 11 taskbar when you're not using it</title>
+  <meta name="description" content="OLEDbar is a tiny Windows 11 utility that dims the taskbar when you're not using it, helping reduce the risk of OLED burn-in. 685 KB, about 1 MB of memory, no admin rights, no network.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#000000">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="OLEDbar: your taskbar never sleeps. Now it can dim.">
+  <meta property="og:description" content="A tiny Windows 11 utility that dims the taskbar when you're not using it, helping reduce the risk of OLED burn-in.">
+  <meta property="og:url" content="https://midimaxi-dev.github.io/OLEDbar/">
+  <meta property="og:image" content="https://midimaxi-dev.github.io/OLEDbar/assets/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://midimaxi-dev.github.io/OLEDbar/">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; connect-src https://api.github.com; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'">
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <a class="brand" href="#top" aria-label="OLEDbar home">
+      <img src="assets/logo.svg" alt="" width="28" height="28">
+      <span>OLEDbar</span>
+    </a>
+    <nav aria-label="Main">
+      <a href="#burn-in">Why</a>
+      <a href="#try">Try it</a>
+      <a href="#features">Features</a>
+      <a href="#faq">FAQ</a>
+      <a class="nav-gh" href="https://github.com/midimaxi-dev/OLEDbar">GitHub</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <p class="eyebrow">For OLED screens on Windows&nbsp;11</p>
+      <h1>Your taskbar never sleeps.<br>Now it can <span class="dim-word" tabindex="0">dim</span>.</h1>
+      <p class="lede">OLEDbar fades a dark, click-through layer over the taskbar when you're not using it, and brings it back the moment you are. It helps reduce the risk of OLED burn-in without hiding your taskbar.</p>
+      <div class="cta">
+        <a class="btn btn-primary" data-dl="setup" href="https://github.com/midimaxi-dev/OLEDbar/releases/latest">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
+          Download for Windows&nbsp;11
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/midimaxi-dev/OLEDbar">View source on GitHub</a>
+      </div>
+      <p class="meta"><span data-version>v0.2.1</span> · 685 KB · ~1 MB of memory · Windows 11 22H2+ · Free and open source (MIT)</p>
+
+      <div class="stage stage-hero" data-demo="hero">
+        <div class="wallpaper" aria-hidden="true"></div>
+        <p class="status" aria-live="polite"><span class="dot"></span><span class="status-text">Bright</span></p>
+        <p class="hint" aria-hidden="true">Move your mouse onto the taskbar</p>
+      </div>
+    </section>
+
+    <!-- Burn-in story -->
+    <section class="burn" id="burn-in" aria-labelledby="burn-title">
+      <div class="burn-sticky">
+        <div class="burn-head">
+          <h2 id="burn-title">Static pixels add up.</h2>
+          <p>The taskbar sits in the same place, at the same brightness, for thousands of hours. On OLED, that's what burn-in feeds on.</p>
+          <p class="hours"><span class="hours-num">0</span><span class="hours-unit"> hours of use</span></p>
+        </div>
+        <div class="burn-compare">
+          <figure>
+            <div class="panel"><div class="ghost" data-ghost="without" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><i></i></div></div>
+            <figcaption>Always-bright taskbar</figcaption>
+          </figure>
+          <figure>
+            <div class="panel"><div class="ghost" data-ghost="with" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><i></i></div></div>
+            <figcaption><strong>With OLEDbar</strong></figcaption>
+          </figure>
+        </div>
+        <p class="fine">Illustration of a grey test screen, not a measurement. Real-world results depend on the panel, brightness and how you use it.</p>
+      </div>
+    </section>
+
+    <!-- Footprint -->
+    <section class="numbers" id="footprint" aria-labelledby="numbers-title">
+      <div class="section-head">
+        <p class="eyebrow">Small footprint</p>
+        <h2 id="numbers-title">Tiny by design.</h2>
+        <p>One 685&nbsp;KB file that idles at about 1&nbsp;MB of memory. Protecting your screen shouldn't cost you resources.</p>
+      </div>
+      <div class="footprint">
+        <div class="big-stat">
+          <span class="stat stat-xl" data-count="685">685</span><span class="unit unit-xl">KB</span>
+          <span class="label">The whole app. One EXE, nothing else to install.</span>
+        </div>
+        <ul class="stats">
+          <li><span class="stat"><span class="tilde">~</span><span data-count="1">1</span></span><span class="unit">MB</span><span class="label">memory while idle</span></li>
+          <li><span class="stat">0</span><span class="unit">&nbsp;</span><span class="label">extra dependencies</span></li>
+          <li><span class="stat">0</span><span class="unit">&nbsp;</span><span class="label">network connections</span></li>
+        </ul>
+      </div>
+      <ul class="chips" aria-label="What OLEDbar doesn't add">
+        <li>No runtime to install</li>
+        <li>No background service</li>
+        <li>No updater</li>
+        <li>No telemetry</li>
+        <li>No admin rights</li>
+      </ul>
+    </section>
+
+    <!-- Try it -->
+    <section class="try" id="try" aria-labelledby="try-title">
+      <div class="section-head">
+        <p class="eyebrow">Try it here</p>
+        <h2 id="try-title">Tune it to your eyes.</h2>
+        <p>Same controls as the real settings panel. Drag the slider and watch the taskbar.</p>
+      </div>
+      <div class="try-grid">
+        <div class="try-controls">
+          <label class="control">
+            <span class="control-row"><span>Dim level</span><output id="level-out">70% darker</output></span>
+            <input type="range" id="level" min="10" max="95" step="1" value="70">
+          </label>
+          <label class="control">
+            <span class="control-row"><span>Dim again after</span><output id="delay-out">3 s</output></span>
+            <input type="range" id="delay" min="1" max="10" step="1" value="3">
+          </label>
+          <div class="stage stage-mini" data-demo="mini">
+            <div class="wallpaper" aria-hidden="true"></div>
+            <p class="status" aria-live="polite"><span class="dot"></span><span class="status-text">Bright</span></p>
+          </div>
+        </div>
+        <figure class="shot">
+          <img src="assets/settings.png" width="477" height="643" loading="lazy" alt="The OLEDbar settings panel: dim level slider, delays, fade durations, behavior options and a keyboard shortcut for desktop icons.">
+          <figcaption>The real settings panel. Left-click the tray icon to open it.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features" id="features" aria-labelledby="features-title">
+      <div class="section-head">
+        <p class="eyebrow">Stays out of your way</p>
+        <h2 id="features-title">Smart about when to step back.</h2>
+      </div>
+      <ul class="cards">
+        <li class="card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+          <h3>No injection</h3>
+          <p>Doesn't patch or hook Explorer. It only draws a click-through layer above the taskbar.</p>
+        </li>
+        <li class="card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+          <h3>Fullscreen aware</h3>
+          <p>Steps aside for fullscreen apps and videos, and while the taskbar is auto-hidden.</p>
+        </li>
+        <li class="card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/></svg>
+          <h3>Invisible in screenshots</h3>
+          <p>Keeps the dim layer out of supported screenshots and screen sharing, by default.</p>
+        </li>
+        <li class="card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <h3>Pauses when locked</h3>
+          <p>Goes quiet while the PC is locked or the screen is off. Pause it from the tray anytime.</p>
+        </li>
+        <li class="card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></svg>
+          <h3>Wakes instantly</h3>
+          <p>Mouse on the taskbar, Start, Search or Win+T: it's bright again in about 120 ms.</p>
+        </li>
+        <li class="card">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 15h10"/></svg>
+          <h3>Desktop icons shortcut</h3>
+          <p>An optional hotkey shows or hides desktop icons, for a cleaner, darker desktop.</p>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Download -->
+    <section class="download" id="download" aria-labelledby="dl-title">
+      <h2 id="dl-title" class="center">Give your taskbar a break.</h2>
+      <p class="center sub">Windows 11 22H2 or later · x64 · <span data-version>v0.2.1</span></p>
+      <div class="dl-grid">
+        <a class="dl-card dl-primary" data-dl="setup" href="https://github.com/midimaxi-dev/OLEDbar/releases/latest">
+          <span class="dl-kind">Installer</span>
+          <span class="dl-title">Setup for most people</span>
+          <span class="dl-desc">Per-user, no admin rights. Start menu entry, optional start at sign-in, uninstall from Settings → Apps.</span>
+        </a>
+        <a class="dl-card" data-dl="zip" href="https://github.com/midimaxi-dev/OLEDbar/releases/latest">
+          <span class="dl-kind">Portable</span>
+          <span class="dl-title">Zip, run anywhere</span>
+          <span class="dl-desc">Unzip and run OLEDbar.exe. Nothing to install. Delete the folder to remove it.</span>
+        </a>
+      </div>
+      <p class="fine center">Releases are currently unsigned, so Windows may show a warning. Checksums are in <code>SHA256SUMS.txt</code> on the release page.</p>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq" id="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title" class="center">Questions</h2>
+      <div class="faq-list">
+        <details><summary>Does it work with auto-hide?</summary><p>Yes. The overlay hides while the taskbar is hidden and can resume when it reappears.</p></details>
+        <details><summary>Does it affect fullscreen apps?</summary><p>By default, OLEDbar hides its overlay when it detects a fullscreen app or video.</p></details>
+        <details><summary>Does it show up in screenshots?</summary><p>Normally not. By default, OLEDbar asks Windows to exclude the dimming overlay from screenshots and screen sharing. You can change this in Settings.</p></details>
+        <details><summary>Does it support multiple monitors?</summary><p>Yes, but only the primary display's taskbar is dimmed. Additional taskbars are not dimmed yet.</p></details>
+        <details><summary>Does it need admin rights?</summary><p>No. Both the per-user installer and the portable app run without administrator rights.</p></details>
+        <details><summary>Is it signed?</summary><p>Not yet. Windows may warn about or block unsigned apps. If Smart App Control blocks OLEDbar, wait for a signed release.</p></details>
+        <details><summary>Does it send data anywhere?</summary><p>No. OLEDbar makes no network connections. Settings and logs stay in <code>%LOCALAPPDATA%\OLEDbar</code>.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p><img src="assets/logo.svg" alt="" width="20" height="20"> OLEDbar · MIT license · <a href="https://github.com/midimaxi-dev/OLEDbar">GitHub</a> · <a href="https://github.com/midimaxi-dev/OLEDbar/issues">Report an issue</a></p>
+    <p class="fine">This page uses no cookies, trackers or web fonts. Mostly black pixels, as it should be.</p>
+  </footer>
+
+  <template id="taskbar-tpl">
+    <div class="taskbar" tabindex="0" role="img" aria-label="Simulated Windows 11 taskbar. Hover or focus it to wake it.">
+      <div class="tb-apps">
+        <span class="tb-ico tb-start"><i></i><i></i><i></i><i></i></span>
+        <span class="tb-search"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5 5"/></svg><span>Search</span></span>
+        <span class="tb-ico tb-a1 active"></span>
+        <span class="tb-ico tb-a2 active"></span>
+        <span class="tb-ico tb-a3"></span>
+        <span class="tb-ico tb-a4 active"></span>
+        <span class="tb-ico tb-a5"></span>
+      </div>
+      <div class="tb-tray">
+        <svg class="tb-chev" viewBox="0 0 24 24"><path d="m6 15 6-6 6 6"/></svg>
+        <img class="tb-oledbar" src="assets/logo.svg" alt="" width="16" height="16">
+        <svg viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/><circle cx="12" cy="19.5" r="1"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2"/><rect x="4" y="9" width="11" height="6" rx="1" class="fill"/></svg>
+        <span class="tb-clock"><span class="tb-time">10:42</span><span class="tb-date">06/11/2026</span></span>
+      </div>
+      <div class="tb-overlay" aria-hidden="true"></div>
+    </div>
+  </template>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
