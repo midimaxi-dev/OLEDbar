@@ -6,6 +6,7 @@
 #include <commctrl.h>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <format>
 #include <iterator>
@@ -45,6 +46,7 @@ constexpr UINT kSettingsDebounceMs = 300;
 constexpr UINT kPreviewMs = 1500;
 // Trim the working set once things settle after startup or after the settings panel closes.
 constexpr UINT kTrimDelayMs = 5000;
+constexpr DWORD kUpdateWaitFallbackMs = 1000;
 constexpr ULONGLONG kTicksPerMs = 10'000;  // FILETIME units are 100 ns.
 
 constexpr int kHotkeyDesktopIcons = 1;
@@ -62,8 +64,41 @@ enum MenuCommand : UINT {
     kCmdToggleDesktopIcons,
     kCmdSettings,
     kCmdOpenLog,
+    kCmdAbout,
     kCmdExit,
 };
+
+bool DialogControlsReady() {
+    // comctl32 remains delay-loaded until a dialog is first opened.
+    static const bool ready = [] {
+        INITCOMMONCONTROLSEX init{sizeof(init),
+                                  ICC_BAR_CLASSES | ICC_UPDOWN_CLASS | ICC_HOTKEY_CLASS | ICC_LINK_CLASS};
+        return InitCommonControlsEx(&init) != FALSE;
+    }();
+    return ready;
+}
+
+const wchar_t* UpdateOutcomeName(UpdateOutcome outcome) noexcept {
+    switch (outcome) {
+    case UpdateOutcome::Available:
+        return L"update available";
+    case UpdateOutcome::UpToDate:
+        return L"up to date";
+    case UpdateOutcome::NewerThanRelease:
+        return L"newer than latest release";
+    case UpdateOutcome::ConnectionError:
+        return L"connection error";
+    case UpdateOutcome::HttpError:
+        return L"HTTP error";
+    case UpdateOutcome::InvalidRelease:
+        return L"invalid release";
+    case UpdateOutcome::ResponseTooLarge:
+        return L"response too large";
+    case UpdateOutcome::InternalError:
+        return L"internal error";
+    }
+    return L"unknown error";
+}
 
 constexpr const wchar_t* kShellUiProcesses[] = {
     L"StartMenuExperienceHost.exe",
@@ -120,20 +155,40 @@ int AppHost::Run(HINSTANCE instance) {
         return 1;
     }
 
-    // Like GetMessage, but also wakes when the settings directory changes.
+    // Also wakes for settings changes and a user-initiated update check.
     for (;;) {
-        HANDLE change = settingsStore_.ChangeEvent();
-        const DWORD handleCount = change ? 1 : 0;
-        const DWORD wait = MsgWaitForMultipleObjectsEx(handleCount, change ? &change : nullptr, INFINITE,
+        std::array<HANDLE, 2> handles{};
+        DWORD handleCount = 0;
+        const HANDLE change = settingsStore_.ChangeEvent();
+        const DWORD changeIndex = change ? handleCount++ : MAXDWORD;
+        if (change) {
+            handles[changeIndex] = change;
+        }
+        const HANDLE completion = updateWaitFallback_ ? nullptr : updateChecker_.CompletionEvent();
+        const DWORD completionIndex = completion ? handleCount++ : MAXDWORD;
+        if (completion) {
+            handles[completionIndex] = completion;
+        }
+        const DWORD timeout = updateChecker_.Running() ? kUpdateWaitFallbackMs : INFINITE;
+        const DWORD wait = MsgWaitForMultipleObjectsEx(handleCount, handleCount ? handles.data() : nullptr, timeout,
                                                        QS_ALLINPUT, MWMO_INPUTAVAILABLE);
-        if (handleCount == 1 && wait == WAIT_OBJECT_0) {
+        if (change && wait == WAIT_OBJECT_0 + changeIndex) {
             settingsStore_.Rearm();
             SetTimer(hwnd_, kTimerSettings, kSettingsDebounceMs, nullptr);
             continue;
         }
         if (wait == WAIT_FAILED) {
-            log::Info(L"Settings watch failed ({}); live reload disabled", GetLastError());
-            settingsStore_.StopWatching();
+            log::Info(L"Message wait failed ({})", GetLastError());
+            if (change) {
+                settingsStore_.StopWatching();
+                log::Info(L"Settings live reload disabled");
+            }
+            if (completion) {
+                updateWaitFallback_ = true;
+            }
+        }
+        if ((completion && wait == WAIT_OBJECT_0 + completionIndex) || wait == WAIT_TIMEOUT) {
+            FinishUpdateCheck();
         }
         MSG message{};
         while (PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) {
@@ -141,7 +196,8 @@ int AppHost::Run(HINSTANCE instance) {
                 Shutdown();
                 return static_cast<int>(message.wParam);
             }
-            if (settingsDialog_.Hwnd() && IsDialogMessageW(settingsDialog_.Hwnd(), &message)) {
+            if ((aboutDialog_.Hwnd() && IsDialogMessageW(aboutDialog_.Hwnd(), &message)) ||
+                (settingsDialog_.Hwnd() && IsDialogMessageW(settingsDialog_.Hwnd(), &message))) {
                 continue;
             }
             TranslateMessage(&message);
@@ -234,6 +290,7 @@ void AppHost::Shutdown() {
         return;
     }
     shutDown_ = true;
+    aboutDialog_.Close();
     settingsDialog_.Close();
     SetDesktopIconsHotkey(Hotkey{});
     tray_.Remove();
@@ -375,12 +432,7 @@ void AppHost::UpdateTray() {
 
 void AppHost::ShowSettings() {
     log::Debug(L"Settings panel requested");
-    // comctl32 is delay-loaded, so it is only mapped once the panel is first opened.
-    static const bool commonControlsReady = [] {
-        INITCOMMONCONTROLSEX init{sizeof(init), ICC_BAR_CLASSES | ICC_UPDOWN_CLASS | ICC_HOTKEY_CLASS};
-        return InitCommonControlsEx(&init) != FALSE;
-    }();
-    if (!commonControlsReady) {
+    if (!DialogControlsReady()) {
         log::Info(L"Common controls could not be initialized");
     }
     const bool shown = settingsDialog_.Show(instance_, settings_, startup::IsEnabled(),
@@ -395,6 +447,7 @@ void AppHost::ShowSettings() {
                                      Sync();
                                  },
                              .openFile = [this] { OpenFile(settingsStore_.Path()); },
+                             .showAbout = [this] { ShowAbout(); },
                              .closed =
                                  [this] {
                                      KillTimer(hwnd_, kTimerPreview);
@@ -406,6 +459,60 @@ void AppHost::ShowSettings() {
     if (!shown) {
         log::Info(L"Settings panel could not be opened ({})", GetLastError());
     }
+}
+
+void AppHost::ShowAbout() {
+    if (!DialogControlsReady()) {
+        log::Info(L"Common controls could not be initialized for About");
+        MessageBoxW(hwnd_, L"Could not open About because Windows common controls are unavailable.", L"OLEDbar",
+                    MB_OK | MB_ICONERROR);
+        return;
+    }
+    if (!aboutDialog_.Show(instance_, hwnd_, updateChecker_.Running(), lastUpdateResult_,
+                           [this] { CheckForUpdates(); })) {
+        log::Info(L"About dialog could not be opened ({})", GetLastError());
+        MessageBoxW(hwnd_, L"Could not open the About dialog. See the log for details.", L"OLEDbar",
+                    MB_OK | MB_ICONERROR);
+    }
+}
+
+void AppHost::CheckForUpdates() {
+    if (updateChecker_.Running()) {
+        return;
+    }
+    log::Info(L"Update check requested");
+    constexpr Version current{OLEDBAR_VERSION_MAJOR, OLEDBAR_VERSION_MINOR, OLEDBAR_VERSION_PATCH};
+    DWORD error = ERROR_SUCCESS;
+    if (!updateChecker_.Start(current,
+                              [] {
+                                  return HttpsGet(L"api.github.com", L"/repos/midimaxi-dev/OLEDbar/releases/latest",
+                                                  L"OLEDbar/" OLEDBAR_VERSION_WSTRING);
+                              },
+                              error)) {
+        log::Info(L"Could not start update check ({})", error);
+        lastUpdateResult_ = UpdateCheckResult{.outcome = UpdateOutcome::InternalError, .systemError = error};
+        aboutDialog_.SetResult(*lastUpdateResult_);
+        return;
+    }
+    updateWaitFallback_ = false;
+    lastUpdateResult_.reset();
+    aboutDialog_.SetChecking();
+}
+
+void AppHost::FinishUpdateCheck() {
+    const auto result = updateChecker_.TakeResult();
+    if (!result) {
+        return;
+    }
+    const std::wstring latest = result->latest
+                                    ? std::format(L"{}.{}.{}", result->latest->major, result->latest->minor,
+                                                  result->latest->patch)
+                                    : L"-";
+    log::Info(L"Update check: {} (latest={}, HTTP={}, error={})", UpdateOutcomeName(result->outcome), latest,
+              result->httpStatus, result->systemError);
+    lastUpdateResult_ = *result;
+    updateWaitFallback_ = false;
+    aboutDialog_.SetResult(*result);
 }
 
 bool AppHost::ApplyFromDialog(const Settings& settings, bool runAtStartup) {
@@ -914,6 +1021,7 @@ void AppHost::ShowTrayMenu(POINT anchor) {
     SetMenuDefaultItem(menu.get(), kCmdSettings, FALSE);
     AppendMenuW(menu.get(), MF_STRING, kCmdOpenLog, L"Open log");
     AppendMenuW(menu.get(), MF_SEPARATOR, 0, nullptr);
+    AppendMenuW(menu.get(), MF_STRING, kCmdAbout, L"&About OLEDbar...");
     AppendMenuW(menu.get(), MF_STRING, kCmdExit, L"Exit");
 
     // Required so the menu closes when the user clicks elsewhere.
@@ -948,6 +1056,9 @@ void AppHost::ShowTrayMenu(POINT anchor) {
         break;
     case kCmdOpenLog:
         OpenFile(log::Path());
+        break;
+    case kCmdAbout:
+        ShowAbout();
         break;
     case kCmdExit:
         DestroyWindow(hwnd_);

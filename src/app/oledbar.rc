@@ -37,7 +37,7 @@ BEGIN
     END
 END
 
-IDD_SETTINGS DIALOGEX 0, 0, 300, 309
+IDD_SETTINGS DIALOGEX 0, 0, 300, 323
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "OLEDbar Settings"
@@ -76,9 +76,29 @@ BEGIN
     PUSHBUTTON      "&Clear", IDC_DESKTOP_ICONS_CLEAR, 240, 249, 45, 14
     LTEXT           "Off unless set. Click the box and press keys, for example Ctrl+Alt+D.", IDC_STATIC, 15, 267, 270, 8
 
-    PUSHBUTTON      "&Restore defaults", IDC_DEFAULTS, 7, 288, 66, 14
-    PUSHBUTTON      "Settings fil&e...", IDC_OPEN_FILE, 77, 288, 62, 14
-    DEFPUSHBUTTON   "OK", IDOK, 147, 288, 46, 14
-    PUSHBUTTON      "Cancel", IDCANCEL, 197, 288, 46, 14
-    PUSHBUTTON      "A&pply", IDC_APPLY, 247, 288, 46, 14
+    CONTROL         "", IDC_SETTINGS_ABOUT, WC_LINK, WS_TABSTOP, 7, 288, 280, 12
+    PUSHBUTTON      "&Restore defaults", IDC_DEFAULTS, 7, 302, 66, 14
+    PUSHBUTTON      "Settings fil&e...", IDC_OPEN_FILE, 77, 302, 62, 14
+    DEFPUSHBUTTON   "OK", IDOK, 147, 302, 46, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 197, 302, 46, 14
+    PUSHBUTTON      "A&pply", IDC_APPLY, 247, 302, 46, 14
+END
+
+IDD_ABOUT DIALOGEX 0, 0, 300, 154
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_APPWINDOW
+CAPTION "About OLEDbar"
+FONT 9, "Segoe UI", 400, 0, 0x1
+BEGIN
+    ICON            IDI_APP, IDC_STATIC, 12, 10, 20, 20
+    LTEXT           "", IDC_ABOUT_VERSION, 45, 10, 240, 11
+    LTEXT           "Dims the Windows 11 taskbar to help reduce OLED burn-in.", IDC_STATIC, 45, 25, 240, 18
+    LTEXT           "MIT License - OLEDbar contributors", IDC_STATIC, 12, 48, 270, 10
+    CONTROL         "<a id=""website"">Website</a>    <a id=""github"">GitHub</a>    <a id=""releases"">Releases</a>", IDC_ABOUT_LINKS, WC_LINK, WS_TABSTOP, 12, 61, 275, 12
+
+    GROUPBOX        "Updates", IDC_STATIC, 7, 77, 286, 53
+    LTEXT           "", IDC_UPDATE_STATUS, 15, 87, 270, 18
+    PUSHBUTTON      "Check for &updates", IDC_CHECK_UPDATES, 15, 109, 95, 14
+    PUSHBUTTON      "&Download...", IDC_OPEN_RELEASE, 115, 109, 72, 14
+    DEFPUSHBUTTON   "Close", IDCANCEL, 245, 134, 48, 14
 END

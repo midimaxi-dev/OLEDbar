@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>OLEDbar: dim the Windows 11 taskbar when you're not using it</title>
-  <meta name="description" content="OLEDbar is a tiny Windows 11 utility that dims the taskbar when you're not using it, helping reduce the risk of OLED burn-in. 685 KB, about 1 MB of memory, no admin rights, no network.">
+  <meta name="description" content="OLEDbar is a tiny Windows 11 utility that dims the taskbar when you're not using it, helping reduce the risk of OLED burn-in. About 700 KB, under 1 MB idle working set in testing, no admin rights or automatic update checks.">
   <meta name="color-scheme" content="dark">
   <meta name="theme-color" content="#000000">
   <meta property="og:type" content="website">
@@ -50,7 +50,7 @@
         </a>
         <a class="btn btn-ghost" href="https://github.com/midimaxi-dev/OLEDbar">View source on GitHub</a>
       </div>
-      <p class="meta"><span data-version>v0.2.1</span> · 685 KB · ~1 MB of memory · Windows 11 22H2+ · Free and open source (MIT)</p>
+      <p class="meta"><span data-version>v0.3.0</span> · ~700 KB · &lt;1 MB idle working set in testing · Windows 11 22H2+ · Free and open source (MIT)</p>
 
       <div class="stage stage-hero" data-demo="hero">
         <div class="wallpaper" aria-hidden="true"></div>
@@ -86,23 +86,23 @@
       <div class="section-head">
         <p class="eyebrow">Small footprint</p>
         <h2 id="numbers-title">Tiny by design.</h2>
-        <p>One 685&nbsp;KB file that idles at about 1&nbsp;MB of memory. Protecting your screen shouldn't cost you resources.</p>
+        <p>One roughly 700&nbsp;KB file, using under 1&nbsp;MB of private working set while idle in our test. Memory use varies by system.</p>
       </div>
       <div class="footprint">
         <div class="big-stat">
-          <span class="stat stat-xl" data-count="685">685</span><span class="unit unit-xl">KB</span>
+          <span class="stat stat-xl"><span class="tilde">~</span><span data-count="700">700</span></span><span class="unit unit-xl">KB</span>
           <span class="label">The whole app. One EXE, nothing else to install.</span>
         </div>
         <ul class="stats">
-          <li><span class="stat"><span class="tilde">~</span><span data-count="1">1</span></span><span class="unit">MB</span><span class="label">memory while idle</span></li>
+          <li><span class="stat"><span class="tilde">&lt;</span><span data-count="1">1</span></span><span class="unit">MB</span><span class="label">idle private working set in testing</span></li>
           <li><span class="stat">0</span><span class="unit">&nbsp;</span><span class="label">extra dependencies</span></li>
-          <li><span class="stat">0</span><span class="unit">&nbsp;</span><span class="label">network connections</span></li>
+          <li><span class="stat">0</span><span class="unit">&nbsp;</span><span class="label">automatic update checks</span></li>
         </ul>
       </div>
       <ul class="chips" aria-label="What OLEDbar doesn't add">
         <li>No runtime to install</li>
         <li>No background service</li>
-        <li>No updater</li>
+        <li>No automatic updater</li>
         <li>No telemetry</li>
         <li>No admin rights</li>
       </ul>
@@ -180,7 +180,7 @@
     <!-- Download -->
     <section class="download" id="download" aria-labelledby="dl-title">
       <h2 id="dl-title" class="center">Give your taskbar a break.</h2>
-      <p class="center sub">Windows 11 22H2 or later · x64 · <span data-version>v0.2.1</span></p>
+      <p class="center sub">Windows 11 22H2 or later · x64 · <span data-version>v0.3.0</span></p>
       <div class="dl-grid">
         <a class="dl-card dl-primary" data-dl="setup" href="https://github.com/midimaxi-dev/OLEDbar/releases/latest">
           <span class="dl-kind">Installer</span>
@@ -206,7 +206,8 @@
         <details><summary>Does it support multiple monitors?</summary><p>Yes, but only the primary display's taskbar is dimmed. Additional taskbars are not dimmed yet.</p></details>
         <details><summary>Does it need admin rights?</summary><p>No. Both the per-user installer and the portable app run without administrator rights.</p></details>
         <details><summary>Is it signed?</summary><p>Not yet. Windows may warn about or block unsigned apps. If Smart App Control blocks OLEDbar, wait for a signed release.</p></details>
-        <details><summary>Does it send data anywhere?</summary><p>No. OLEDbar makes no network connections. Settings and logs stay in <code>%LOCALAPPDATA%\OLEDbar</code>.</p></details>
+        <details><summary>How do I check for updates?</summary><p>Open About from Settings or the tray menu, then select Check for updates. OLEDbar never checks, downloads or installs updates automatically.</p></details>
+        <details><summary>Does it send data anywhere?</summary><p>The OLEDbar app contacts GitHub only when you choose to check for updates; GitHub receives the connection's public IP address and OLEDbar version. Settings and logs stay in <code>%LOCALAPPDATA%\OLEDbar</code>. This website separately requests current release details from GitHub when opened.</p></details>
       </div>
     </section>
   </main>
