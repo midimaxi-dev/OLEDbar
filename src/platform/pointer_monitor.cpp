@@ -46,4 +46,12 @@ void PointerMonitor::Unregister() {
     }
 }
 
+bool PointerMonitor::HasButtonActivity(HRAWINPUT input) {
+    RAWINPUT data{};
+    UINT size = sizeof(data);
+    const UINT copied = GetRawInputData(input, RID_INPUT, &data, &size, sizeof(RAWINPUTHEADER));
+    return copied != static_cast<UINT>(-1) && copied >= sizeof(RAWINPUTHEADER) + sizeof(RAWMOUSE) &&
+           data.header.dwType == RIM_TYPEMOUSE && data.data.mouse.usButtonFlags != 0;
+}
+
 }  // namespace dimmer

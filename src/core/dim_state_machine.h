@@ -29,6 +29,8 @@ public:
 
     void SetPolicy(const DimPolicy& policy);
     void SetHover(bool hover);
+    void PointerActivity();
+    void SetPointerHeld(bool held);
     void SetInteraction(bool active);
     void SetSuppressed(bool suppressed);
     // Momentary wake that restarts the idle countdown (e.g. taskbar received focus).
@@ -55,7 +57,10 @@ private:
     void AdvanceFade(TimePoint now);
     void StartCountdown(TimePoint now, bool afterEngagement) noexcept;
     std::chrono::milliseconds CountdownDuration() const noexcept;
-    bool Engaged() const noexcept { return (hover_ && !ignoreHover_) || interaction_; }
+    bool Engaged(TimePoint now) const noexcept {
+        return interaction_ || (!ignoreHover_ &&
+            (pointerHeld_ || (hover_ && now - pointerActivitySince_ < policy_.idleTimeout)));
+    }
 
     const IClock& clock_;
     DimPolicy policy_;
@@ -63,8 +68,10 @@ private:
     double opacity_ = 0.0;
     std::optional<Fade> fade_;
     TimePoint idleSince_;
+    TimePoint pointerActivitySince_{};
     bool countdownAfterEngagement_ = false;
     bool hover_ = false;
+    bool pointerHeld_ = false;
     bool ignoreHover_ = false;
     bool interaction_ = false;
     bool suppressed_ = false;
