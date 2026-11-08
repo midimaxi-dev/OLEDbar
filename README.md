@@ -6,7 +6,7 @@
 
 After a few seconds without mouse activity on the Windows 11 taskbar, a dark, click-through layer fades in over it, even if the pointer is parked on it. This dims the background, icons, text, clock and tray. Moving onto or within the taskbar, clicking or scrolling wakes it. It stays bright during a drag and, by default, while Start or Search is open.
 
-> **Status:** version 0.4.0, a usable early release.
+> **Status:** version 0.4.1, a usable early release.
 
 - **Tiny footprint, not a heavy suite:** a **~715 KB release EXE**, using **under 1 MB of idle private working set** in our local test (as shown in Task Manager; memory use varies by system). No runtime to install; no admin rights required.
 - No injection into Explorer: it only draws a click-through layer above the taskbar.
@@ -34,7 +34,7 @@ Get the latest version from **[Releases](https://github.com/midimaxi-dev/OLEDbar
 | `OLEDbar-<version>-x64-setup.exe` | Most people. Installs for your user only, no admin rights. Adds a Start menu entry, can start OLEDbar when you sign in, and appears in *Settings → Apps* for uninstalling. |
 | `OLEDbar-<version>-x64.zip` | Portable use. Unzip anywhere and run `OLEDbar.exe`. Turn on *Start OLEDbar when I sign in* in its settings if you like. |
 
-`SHA256SUMS.txt` lists checksums for both files. To verify a download, compare its hash with the matching entry, for example: `Get-FileHash .\OLEDbar-0.4.0-x64-setup.exe`.
+`SHA256SUMS.txt` lists checksums for both files. To verify a download, compare its hash with the matching entry, for example: `Get-FileHash .\OLEDbar-0.4.1-x64-setup.exe`.
 
 Windows may warn about unsigned releases; see [Unsigned releases](#unsigned-releases).
 
@@ -188,7 +188,7 @@ This writes `OLEDbar-<version>-x64.zip`, `SHA256SUMS.txt` and, if [Inno Setup 6]
 1. Bump `project(... VERSION x.y.z)` in `CMakeLists.txt` and commit. This is the only place the version is set.
 2. Tag and push:
    ```powershell
-   git tag v0.4.0; git push origin v0.4.0
+   git tag v0.4.1; git push origin v0.4.1
    ```
 3. The workflow checks that the tag matches the project version, builds, and creates a **draft** GitHub Release with the installer, zip and checksums. Review it on GitHub, then click **Publish**.
 
