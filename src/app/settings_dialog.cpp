@@ -11,8 +11,9 @@
 #include <string>
 #include <utility>
 
+#include "app/dialog_util.h"
 #include "app/resource.h"
-#include "app/tray_icon.h"
+#include "version.h"
 
 namespace dimmer {
 namespace {
@@ -149,6 +150,15 @@ INT_PTR SettingsDialog::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam
 
     case WM_NOTIFY: {
         const auto* header = reinterpret_cast<const NMHDR*>(lParam);
+        if (!header) {
+            return FALSE;
+        }
+        if (header->idFrom == IDC_SETTINGS_ABOUT && (header->code == NM_CLICK || header->code == NM_RETURN)) {
+            if (callbacks_.showAbout) {
+                callbacks_.showAbout();
+            }
+            return TRUE;
+        }
         if (header->code == UDN_DELTAPOS) {
             const auto* upDown = reinterpret_cast<const NMUPDOWN*>(lParam);
             Step(static_cast<int>(header->idFrom), upDown->iDelta);
@@ -221,16 +231,8 @@ void SettingsDialog::InitializeControls() {
     SendDlgItemMessageW(hwnd_, IDC_DESKTOP_ICONS_HOTKEY, HKM_SETRULES, HKCOMB_NONE | HKCOMB_S,
                         MAKELPARAM(HOTKEYF_CONTROL | HOTKEYF_ALT, 0));
 
-    HICON icon = nullptr;
-    const HINSTANCE instance = reinterpret_cast<HINSTANCE>(GetWindowLongPtrW(hwnd_, GWLP_HINSTANCE));
-    if (SUCCEEDED(LoadIconMetric(instance, MAKEINTRESOURCEW(IDI_APP), LIM_SMALL, &icon))) {
-        smallIcon_.reset(icon);
-    }
-    if (SUCCEEDED(LoadIconMetric(instance, MAKEINTRESOURCEW(IDI_APP), LIM_LARGE, &icon))) {
-        largeIcon_.reset(icon);
-    }
-    SendMessageW(hwnd_, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(smallIcon_.get()));
-    SendMessageW(hwnd_, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(largeIcon_.get()));
+    SetDlgItemTextW(hwnd_, IDC_SETTINGS_ABOUT, L"OLEDbar " OLEDBAR_VERSION_WSTRING L"  <a id=\"about\">About</a>");
+    SetAppDialogIcons(hwnd_, smallIcon_, largeIcon_);
 }
 
 void SettingsDialog::Load(const Settings& settings, bool runAtStartup) {

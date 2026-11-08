@@ -5,6 +5,7 @@
 #include <optional>
 #include <string>
 
+#include "app/about_dialog.h"
 #include "app/settings_dialog.h"
 #include "app/tray_icon.h"
 #include "core/clock.h"
@@ -15,6 +16,7 @@
 #include "platform/settings_store.h"
 #include "platform/shell_event_monitor.h"
 #include "platform/taskbar_locator.h"
+#include "platform/update_checker.h"
 
 namespace dimmer {
 
@@ -52,6 +54,9 @@ private:
     void UpdateTray();
     void OpenFile(const std::wstring& path);
     void ShowSettings();
+    void ShowAbout();
+    void CheckForUpdates();
+    void FinishUpdateCheck();
     bool ApplyFromDialog(const Settings& settings, bool runAtStartup);
 
     void RefreshTaskbar(const wchar_t* reason);
@@ -81,6 +86,9 @@ private:
     Settings settings_;
     Hotkey registeredHotkey_;
     SettingsDialog settingsDialog_;
+    AboutDialog aboutDialog_;
+    UpdateChecker updateChecker_;
+    std::optional<UpdateCheckResult> lastUpdateResult_;
     std::optional<double> previewLevel_;
 
     PauseMode pause_ = PauseMode::None;
@@ -102,6 +110,7 @@ private:
     HPOWERNOTIFY powerNotify_ = nullptr;
     std::wstring suppressionReasons_;
     bool shutDown_ = false;
+    bool updateWaitFallback_ = false;
     unsigned long long rawInputEvents_ = 0;
     std::optional<TimePoint> armedDeadline_;
     DimState loggedState_ = DimState::Countdown;

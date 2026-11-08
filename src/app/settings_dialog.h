@@ -19,6 +19,7 @@ public:
         // Temporary dim level to show while the slider moves (0..1).
         std::function<void(double dimLevel)> preview;
         std::function<void()> openFile;
+        std::function<void()> showAbout;
         std::function<void()> closed;
     };
 

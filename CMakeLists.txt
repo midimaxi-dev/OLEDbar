@@ -40,6 +40,10 @@ add_library(oledbar_core STATIC
     src/core/dim_state_machine.cpp
     src/core/hotkey.h
     src/core/hotkey.cpp
+    src/core/version.h
+    src/core/version.cpp
+    src/core/update_check.h
+    src/core/update_check.cpp
     src/core/settings.h
     src/core/settings.cpp)
 target_include_directories(oledbar_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -49,6 +53,10 @@ oledbar_configure_target(oledbar_core)
 add_library(oledbar_platform STATIC
     src/platform/log.h
     src/platform/log.cpp
+    src/platform/http_client.h
+    src/platform/http_client.cpp
+    src/platform/update_checker.h
+    src/platform/update_checker.cpp
     src/platform/win_util.h
     src/platform/win_util.cpp
     src/platform/desktop_icons.h
@@ -65,7 +73,7 @@ add_library(oledbar_platform STATIC
     src/platform/shell_event_monitor.cpp
     src/platform/startup.h
     src/platform/startup.cpp)
-target_link_libraries(oledbar_platform PUBLIC oledbar_core WIL::WIL user32 shell32)
+target_link_libraries(oledbar_platform PUBLIC oledbar_core WIL::WIL user32 shell32 winhttp)
 oledbar_configure_target(oledbar_platform)
 
 add_executable(oledbar WIN32
@@ -74,6 +82,10 @@ add_executable(oledbar WIN32
     src/app/app_host.cpp
     src/app/tray_icon.h
     src/app/tray_icon.cpp
+    src/app/dialog_util.h
+    src/app/dialog_util.cpp
+    src/app/about_dialog.h
+    src/app/about_dialog.cpp
     src/app/settings_dialog.h
     src/app/settings_dialog.cpp
     src/app/resource.h
@@ -83,7 +95,8 @@ add_executable(oledbar WIN32
 set_target_properties(oledbar PROPERTIES OUTPUT_NAME OLEDbar)
 target_include_directories(oledbar PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
 target_link_libraries(oledbar PRIVATE oledbar_platform wtsapi32 comctl32 delayimp)
-target_link_options(oledbar PRIVATE /guard:cf /CETCOMPAT /DYNAMICBASE /HIGHENTROPYVA /DELAYLOAD:comctl32.dll)
+target_link_options(oledbar PRIVATE /guard:cf /CETCOMPAT /DYNAMICBASE /HIGHENTROPYVA
+    /DELAYLOAD:comctl32.dll /DELAYLOAD:winhttp.dll)
 oledbar_configure_target(oledbar)
 
 if(OLEDBAR_BUILD_TESTS)
@@ -92,10 +105,32 @@ if(OLEDBAR_BUILD_TESTS)
     add_executable(core_tests
         tests/core_tests/dim_state_machine_test.cpp
         tests/core_tests/hotkey_test.cpp
-        tests/core_tests/settings_test.cpp)
+        tests/core_tests/settings_test.cpp
+        tests/core_tests/version_test.cpp
+        tests/core_tests/update_check_test.cpp)
     target_link_libraries(core_tests PRIVATE oledbar_core GTest::gtest GTest::gtest_main)
     oledbar_configure_target(core_tests)
     include(GoogleTest)
     # First launch of a new unsigned exe can be slow while Defender/Smart App Control scans it.
     gtest_discover_tests(core_tests DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 60)
+
+    add_executable(platform_tests
+        tests/platform_tests/http_client_test.cpp
+        tests/platform_tests/update_checker_test.cpp)
+    target_link_libraries(platform_tests PRIVATE oledbar_platform GTest::gtest GTest::gtest_main delayimp)
+    target_link_options(platform_tests PRIVATE /DELAYLOAD:winhttp.dll)
+    oledbar_configure_target(platform_tests)
+    gtest_discover_tests(platform_tests DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 60)
+
+    add_executable(app_tests
+        tests/app_tests/dialog_test.cpp
+        src/app/about_dialog.cpp
+        src/app/dialog_util.cpp
+        src/app/settings_dialog.cpp
+        src/app/oledbar.rc
+        src/app/oledbar.manifest)
+    target_include_directories(app_tests PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/generated)
+    target_link_libraries(app_tests PRIVATE oledbar_platform comctl32 GTest::gtest GTest::gtest_main)
+    oledbar_configure_target(app_tests)
+    gtest_discover_tests(app_tests DISCOVERY_MODE PRE_TEST DISCOVERY_TIMEOUT 60)
 endif()

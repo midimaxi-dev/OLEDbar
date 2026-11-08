@@ -8,7 +8,7 @@ After a few seconds without mouse activity on the Windows 11 taskbar, a dark, cl
 
 > **Status:** version 0.3.0, a usable early release.
 
-- **Tiny footprint, not a heavy suite:** a **~685 KB release EXE**, using only **about 1 MB of memory** while idle (as shown in Task Manager). No runtime to install; no admin rights required.
+- **Tiny footprint, not a heavy suite:** a **~715 KB release EXE**, using **under 1 MB of idle private working set** in our local test (as shown in Task Manager; memory use varies by system). No runtime to install; no admin rights required.
 - No injection into Explorer: it only draws a click-through layer above the taskbar.
 - Settings panel with a live preview of the dim level on your taskbar.
 - By default, hides the overlay for fullscreen apps and when the taskbar is auto-hidden.
@@ -48,6 +48,12 @@ Adjust the dim level with a live preview, change delays and fade durations, or c
 
 Press **OK** or **Apply** to save; **Restore defaults** resets the controls. For advanced configuration, see [Settings file](#settings-file).
 
+## Version and updates
+
+Open **About** from the settings panel, or right-click the tray icon and choose **About OLEDbar...**, to see the running version. Select **Check for updates** to check GitHub for the latest stable release. If a newer version is available, **Download...** opens the Releases page in your browser.
+
+Checks are always initiated by you; OLEDbar does not automatically check, download, or install updates. The Releases link in About is also available if a check fails.
+
 ## FAQ
 
 - **Does it work with auto-hide?** Yes. The overlay hides while the taskbar is hidden and can resume when it reappears.
@@ -57,7 +63,7 @@ Press **OK** or **Apply** to save; **Restore defaults** resets the controls. For
 - **Does it support multi-monitor?** Yes, but only the primary display's taskbar is dimmed. Additional taskbars are not dimmed yet.
 - **Does it require admin rights?** No. Both the per-user installer and the portable app run without administrator rights.
 - **Is it signed?** Current releases are unsigned. Windows may warn or block them; if Smart App Control blocks OLEDbar, wait for a signed release.
-- **Does it send data anywhere?** No. OLEDbar makes no network connections; settings and logs are stored locally in `%LOCALAPPDATA%\OLEDbar`.
+- **Does it send data anywhere?** Only if you choose to check for updates. GitHub receives the connection's public IP address and the OLEDbar version; settings and logs stay local. See [Privacy](#privacy).
 
 ## Uninstall
 
@@ -66,7 +72,9 @@ Press **OK** or **Apply** to save; **Restore defaults** resets the controls. For
 
 ## Privacy
 
-OLEDbar makes no network connections. It stores settings and logs locally in `%LOCALAPPDATA%\OLEDbar`; the optional *Start when I sign in* entry is stored in your user's registry.
+OLEDbar does not send telemetry or check for updates automatically. When you select **Check for updates**, it sends an HTTPS request to `api.github.com` for the latest release. GitHub receives the connection's public IP address (which may be a proxy's) and a `User-Agent` containing the OLEDbar version; settings and logs are not sent. Your configured proxy or network provider may also process the connection.
+
+Settings and logs are stored locally in `%LOCALAPPDATA%\OLEDbar`; the optional *Start when I sign in* entry is stored in your user's registry. The website, GitHub and Releases links open in your browser, which makes its own connections.
 
 ## Building from source
 
@@ -120,7 +128,7 @@ Use the `x64-release` presets for a smaller, optimized build.
 .\out\build\x64-debug\OLEDbar.exe
 ```
 
-Or press **F5** in VS Code to run it under the debugger. For everyday use, build the release preset (`cmake --preset x64-release; cmake --build --preset x64-release`) and run `out\build\x64-release\OLEDbar.exe`. It's a single ~685 KB EXE, and you can copy it anywhere.
+Or press **F5** in VS Code to run it under the debugger. For everyday use, build the release preset (`cmake --preset x64-release; cmake --build --preset x64-release`) and run `out\build\x64-release\OLEDbar.exe`. It's a single ~715 KB EXE, and you can copy it anywhere.
 
 Whenever OLEDbar starts, a notification tells you it is running and where to find its tray icon, even if you already have saved settings. Windows notification settings or Do not disturb may hide it.
 
@@ -135,7 +143,8 @@ Whenever OLEDbar starts, a notification tells you it is running and where to fin
 | Dim now | Dim immediately (useful for testing) |
 | Toggle desktop icons | Show or hide the desktop icons, like the desktop's *View → Show desktop icons*. Shows your shortcut, if set |
 | Settings... | Open the settings panel |
-| Open log | Open `%LOCALAPPDATA%\OLEDbar\logs\oledbar.log` (state changes, taskbar, fullscreen, session and settings events) |
+| Open log | Open `%LOCALAPPDATA%\OLEDbar\logs\oledbar.log` (state changes, taskbar, fullscreen, session, settings and update-check events) |
+| About OLEDbar... | Show the version and optionally check for updates |
 | Exit | Quit |
 
 ## Settings file
@@ -192,13 +201,14 @@ This writes `OLEDbar-<version>-x64.zip`, `SHA256SUMS.txt` and, if [Inno Setup 6]
 - **Builds or tests are slow the first time:** Windows security software may scan newly built executables on their first launch. Later runs are usually faster.
 - **`winget` says "No available upgrade found":** Build Tools are already installed. Add the missing components with the Visual Studio Installer (see Setup).
 - **The installer exits with code 5007:** a `--passive` install was run from a non-elevated terminal. Use an admin terminal, or drop `--passive` so the installer can ask for elevation itself.
+- **An update check fails:** Check your connection, proxy or firewall. GitHub may also deny or rate-limit requests. You can open the Releases page from About without a successful check.
 
 ## Project layout
 
 ```
-src/core/        Pure C++: dimming state machine, settings and shortcut parsing (no Windows headers, unit tested)
-src/platform/    Win32: overlay window, taskbar locator, input and shell events, settings file, run at startup, desktop icons, logging
-src/app/         WinMain, tray icon, settings panel (dialog + .rc), wiring (AppHost), manifest
+src/core/        Pure C++: dimming state machine, settings, shortcuts and version/update parsing (no Windows headers, unit tested)
+src/platform/    Win32: overlay, input and shell events, settings, startup, desktop icons, HTTPS/update worker and logging
+src/app/         WinMain, tray icon, Settings and About dialogs (.rc), wiring (AppHost), manifest
 tests/           GoogleTest unit tests
 packaging/       package.ps1 (zip + installer) and installer/oledbar.iss (Inno Setup)
 .github/         GitHub Actions workflow (build, test, package, draft release on tags)
@@ -209,6 +219,8 @@ packaging/       package.ps1 (zip + installer) and installer/oledbar.iss (Inno S
 ### Unsigned releases
 
 Releases are currently unsigned. Free code signing through the SignPath Foundation has been requested; once granted, this section will carry their attribution.
+
+Signing is not required for HTTPS. Firewall or proxy policies can still block outbound connections, and antivirus software may flag an unsigned app; Smart App Control may prevent it from running.
 
 - Signed files are built by GitHub Actions from this repository's source code ([.github/workflows/build.yml](.github/workflows/build.yml)). Nothing built locally is signed.
 - Committers and reviewers: [midimaxi-dev](https://github.com/midimaxi-dev)
