@@ -55,7 +55,7 @@ private:
     bool ApplyFromDialog(const Settings& settings, bool runAtStartup);
 
     void RefreshTaskbar(const wchar_t* reason);
-    void UpdateHover();
+    void UpdateHover(bool buttonActivity = false);
     void OnForeground(HWND foreground);
     void UpdateFullscreen();
     bool IsForegroundFullscreen() const;
@@ -87,6 +87,8 @@ private:
     SYSTEMTIME pauseEnd_{};      // Local time, for the tooltip.
     ULONGLONG pauseEndTicks_ = 0;  // UTC FILETIME units, survives sleep.
     bool hover_ = false;
+    bool pointerHeld_ = false;
+    std::optional<POINT> pointerPosition_;
     bool fullscreenNotified_ = false;
     bool fullscreenForeground_ = false;
     bool rawInputActive_ = false;

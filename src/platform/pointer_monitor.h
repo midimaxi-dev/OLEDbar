@@ -13,6 +13,7 @@ public:
     // Returns true if at least the mouse was registered.
     bool Register(HWND target);
     void Unregister();
+    static bool HasButtonActivity(HRAWINPUT input);
 
 private:
     std::array<bool, 4> registered_{};

@@ -39,6 +39,9 @@ void DimStateMachine::SetPolicy(const DimPolicy& policy) {
 }
 
 void DimStateMachine::SetHover(bool hover) {
+    if (hover && !hover_) {
+        pointerActivitySince_ = clock_.Now();
+    }
     hover_ = hover;
     if (!hover) {
         ignoreHover_ = false;
@@ -46,7 +49,25 @@ void DimStateMachine::SetHover(bool hover) {
     Update();
 }
 
+void DimStateMachine::PointerActivity() {
+    if (hover_ && !ignoreHover_ && !suppressed_) {
+        pointerActivitySince_ = clock_.Now();
+    }
+    Update();
+}
+
+void DimStateMachine::SetPointerHeld(bool held) {
+    if (pointerHeld_ && !held && hover_) {
+        pointerActivitySince_ = clock_.Now();
+    }
+    pointerHeld_ = held;
+    Update();
+}
+
 void DimStateMachine::SetInteraction(bool active) {
+    if (interaction_ && !active && hover_) {
+        pointerActivitySince_ = clock_.Now();
+    }
     interaction_ = active;
     Update();
 }
@@ -61,6 +82,9 @@ void DimStateMachine::Poke() {
     AdvanceFade(now);
     if (suppressed_) {
         return;
+    }
+    if (hover_) {
+        pointerActivitySince_ = now;
     }
     StartFade(0.0, policy_.fadeToWake, now);
     state_ = DimState::Countdown;
@@ -93,9 +117,10 @@ void DimStateMachine::Update() {
     if (state_ == DimState::Suppressed) {
         state_ = DimState::Countdown;
         StartCountdown(now, false);
+        pointerActivitySince_ = now;
     }
 
-    if (Engaged()) {
+    if (Engaged(now)) {
         const bool alreadyWaking = fade_ && fade_->to == 0.0;
         if (!alreadyWaking) {
             StartFade(0.0, policy_.fadeToWake, now);
@@ -109,7 +134,11 @@ void DimStateMachine::Update() {
     case DimState::Waking:
         // Any remaining wake fade keeps running while the countdown restarts.
         state_ = DimState::Countdown;
-        StartCountdown(now, true);
+        if (hover_ && !ignoreHover_) {
+            StartCountdown(pointerActivitySince_, false);
+        } else {
+            StartCountdown(now, true);
+        }
         [[fallthrough]];
     case DimState::Countdown:
         if (now - idleSince_ >= CountdownDuration()) {
@@ -129,6 +158,10 @@ void DimStateMachine::Update() {
 }
 
 std::optional<TimePoint> DimStateMachine::NextDeadline() const noexcept {
+    if ((state_ == DimState::Awake || state_ == DimState::Waking) && hover_ &&
+        !ignoreHover_ && !interaction_ && !pointerHeld_) {
+        return pointerActivitySince_ + policy_.idleTimeout;
+    }
     if (state_ != DimState::Countdown) {
         return std::nullopt;
     }

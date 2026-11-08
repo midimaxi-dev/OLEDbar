@@ -77,17 +77,145 @@ TEST_F(DimStateMachineTest, HoverWakesQuickly) {
     EXPECT_DOUBLE_EQ(machine_.Opacity(), 0.0);
 }
 
-TEST_F(DimStateMachineTest, HoverHoldsAwake) {
+TEST_F(DimStateMachineTest, StationaryHoverDimsAtIdleDeadline) {
     machine_.SetHover(true);
+    ASSERT_TRUE(machine_.NextDeadline().has_value());
+    EXPECT_EQ(*machine_.NextDeadline(), clock_.Now() + policy_.idleTimeout);
+    AdvanceAndUpdate(policy_.idleTimeout - 1ms);
+    EXPECT_EQ(machine_.State(), DimState::Awake);
+    machine_.SetHover(true);
+    AdvanceAndUpdate(1ms);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+    AdvanceAndUpdate(policy_.fadeToDim);
+    EXPECT_EQ(machine_.State(), DimState::Dimmed);
+    EXPECT_FALSE(machine_.NextDeadline().has_value());
+}
+
+TEST_F(DimStateMachineTest, PointerActivityRestartsHoverTimeoutAndWakes) {
+    machine_.SetHover(true);
+    AdvanceAndUpdate(policy_.idleTimeout - 1ms);
+    machine_.PointerActivity();
+    EXPECT_EQ(*machine_.NextDeadline(), clock_.Now() + policy_.idleTimeout);
+    AdvanceAndUpdate(policy_.idleTimeout);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+    AdvanceAndUpdate(policy_.fadeToDim);
+    machine_.PointerActivity();
+    EXPECT_EQ(machine_.State(), DimState::Waking);
+    AdvanceAndUpdate(policy_.fadeToWake);
+    EXPECT_EQ(machine_.State(), DimState::Awake);
+}
+
+TEST_F(DimStateMachineTest, PointerActivityOutsideTaskbarDoesNotResetCountdown) {
+    AdvanceAndUpdate(policy_.idleTimeout - 1ms);
+    machine_.PointerActivity();
+    AdvanceAndUpdate(1ms);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+}
+
+TEST_F(DimStateMachineTest, ContinuousPointerActivityKeepsHoverBright) {
+    machine_.SetHover(true);
+    for (int sample = 0; sample < 100; ++sample) {
+        AdvanceAndUpdate(1s);
+        machine_.PointerActivity();
+        EXPECT_EQ(machine_.State(), DimState::Awake);
+        EXPECT_DOUBLE_EQ(machine_.Opacity(), 0.0);
+    }
+}
+
+TEST_F(DimStateMachineTest, ShorteningHoverTimeoutDimsWithoutAnotherCountdown) {
+    machine_.SetHover(true);
+    AdvanceAndUpdate(5s);
+    DimPolicy shorter = policy_;
+    shorter.idleTimeout = 4s;
+    machine_.SetPolicy(shorter);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+}
+
+TEST_F(DimStateMachineTest, ExtendingHoverTimeoutUpdatesDeadline) {
+    machine_.SetHover(true);
+    AdvanceAndUpdate(5s);
+    DimPolicy longer = policy_;
+    longer.idleTimeout = 20s;
+    machine_.SetPolicy(longer);
+    ASSERT_TRUE(machine_.NextDeadline().has_value());
+    EXPECT_EQ(*machine_.NextDeadline(), clock_.Now() + 15s);
+    AdvanceAndUpdate(15s);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+}
+
+TEST_F(DimStateMachineTest, SuppressionRestartsStationaryHoverTimeout) {
+    machine_.SetHover(true);
+    AdvanceAndUpdate(5s);
+    machine_.SetSuppressed(true);
+    AdvanceAndUpdate(1h);
+    machine_.PointerActivity();
+    EXPECT_EQ(machine_.State(), DimState::Suppressed);
+    EXPECT_FALSE(machine_.NextDeadline().has_value());
+    machine_.SetSuppressed(false);
+    EXPECT_EQ(machine_.State(), DimState::Awake);
+    EXPECT_EQ(*machine_.NextDeadline(), clock_.Now() + policy_.idleTimeout);
+    AdvanceAndUpdate(policy_.idleTimeout);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+}
+
+TEST_F(DimStateMachineTest, ShellInteractionHoldsHoverAndRestartsTimeoutOnClose) {
+    machine_.SetHover(true);
+    machine_.SetInteraction(true);
     AdvanceAndUpdate(1h);
     EXPECT_EQ(machine_.State(), DimState::Awake);
-    EXPECT_DOUBLE_EQ(machine_.Opacity(), 0.0);
     EXPECT_FALSE(machine_.NextDeadline().has_value());
+    machine_.SetInteraction(false);
+    EXPECT_EQ(*machine_.NextDeadline(), clock_.Now() + policy_.idleTimeout);
+    AdvanceAndUpdate(policy_.idleTimeout);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+}
+
+TEST_F(DimStateMachineTest, PokeRestartsStationaryHoverTimeout) {
+    machine_.SetHover(true);
+    AdvanceAndUpdate(policy_.idleTimeout);
+    AdvanceAndUpdate(policy_.fadeToDim);
+    machine_.Poke();
+    EXPECT_EQ(machine_.State(), DimState::Waking);
+    EXPECT_EQ(*machine_.NextDeadline(), clock_.Now() + policy_.idleTimeout);
+    AdvanceAndUpdate(policy_.idleTimeout);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+}
+
+TEST_F(DimStateMachineTest, DragHoldsAwakeAndReleaseRestartsHoverTimeout) {
+    machine_.SetHover(true);
+    machine_.SetPointerHeld(true);
+    AdvanceAndUpdate(1h);
+    EXPECT_EQ(machine_.State(), DimState::Awake);
+    EXPECT_FALSE(machine_.NextDeadline().has_value());
+    machine_.SetPointerHeld(false);
+    EXPECT_EQ(*machine_.NextDeadline(), clock_.Now() + policy_.idleTimeout);
+    AdvanceAndUpdate(policy_.idleTimeout);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+}
+
+TEST_F(DimStateMachineTest, DragLeavingTaskbarHoldsUntilRelease) {
+    machine_.SetHover(true);
+    machine_.SetPointerHeld(true);
+    machine_.SetHover(false);
+    AdvanceAndUpdate(1h);
+    EXPECT_EQ(machine_.State(), DimState::Awake);
+    machine_.SetPointerHeld(false);
+    EXPECT_EQ(machine_.State(), DimState::Countdown);
+    AdvanceAndUpdate(policy_.redimDelay);
+    EXPECT_EQ(machine_.State(), DimState::Dimming);
+}
+
+TEST_F(DimStateMachineTest, LeavingAfterStationaryDimDoesNotWake) {
+    machine_.SetHover(true);
+    AdvanceAndUpdate(policy_.idleTimeout);
+    AdvanceAndUpdate(policy_.fadeToDim);
+    machine_.SetHover(false);
+    EXPECT_EQ(machine_.State(), DimState::Dimmed);
 }
 
 TEST_F(DimStateMachineTest, LeavingStartsShortRedimCountdown) {
     machine_.SetHover(true);
-    AdvanceAndUpdate(1min);
+    AdvanceAndUpdate(1s);
     machine_.SetHover(false);
     EXPECT_EQ(machine_.State(), DimState::Countdown);
 
@@ -159,9 +287,12 @@ TEST_F(DimStateMachineTest, DimNowIgnoresHoverUntilPointerLeaves) {
 
     machine_.DimNow();
     EXPECT_EQ(machine_.State(), DimState::Dimming);
+    machine_.PointerActivity();
+    machine_.SetPointerHeld(true);
     AdvanceAndUpdate(policy_.fadeToDim);
     EXPECT_EQ(machine_.State(), DimState::Dimmed);
 
+    machine_.SetPointerHeld(false);
     machine_.SetHover(false);
     EXPECT_EQ(machine_.State(), DimState::Dimmed);
     machine_.SetHover(true);

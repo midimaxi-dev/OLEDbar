@@ -4,7 +4,7 @@
 
 **Helps reduce the risk of OLED taskbar burn-in while keeping the taskbar visible.** [Check OLEDbar Website](https://midimaxi-dev.github.io/OLEDbar/)
 
-After a few seconds without the mouse on the Windows 11 taskbar, a dark, click-through layer fades in over it. This dims the background, icons, text, clock and tray. By default, moving the mouse onto the taskbar or opening Start or Search brings it back to full brightness.
+After a few seconds without mouse activity on the Windows 11 taskbar, a dark, click-through layer fades in over it, even if the pointer is parked on it. This dims the background, icons, text, clock and tray. Moving onto or within the taskbar, clicking or scrolling wakes it. It stays bright during a drag and, by default, while Start or Search is open.
 
 > **Status:** version 0.2.1, a usable early release.
 
@@ -51,6 +51,7 @@ Press **OK** or **Apply** to save; **Restore defaults** resets the controls. For
 ## FAQ
 
 - **Does it work with auto-hide?** Yes. The overlay hides while the taskbar is hidden and can resume when it reappears.
+- **Are clicks and scrolling always detected?** Normally yes, through mouse Raw Input. If registration fails, OLEDbar falls back to polling: movement and held buttons on the taskbar still wake it, but stationary scrolling and brief clicks between polls may be missed. HID-only touchpad, touch or pen activity without cursor movement may also be missed; moving the pointer on the taskbar wakes it.
 - **Does it affect fullscreen apps?** By default, OLEDbar hides its overlay when it detects a fullscreen app or video.
 - **Does it show up in screenshots?** Normally not. By default, OLEDbar asks Windows to exclude the dimming overlay from screenshots and screen sharing; you can change this in Settings.
 - **Does it support multi-monitor?** Yes, but only the primary display's taskbar is dimmed. Additional taskbars are not dimmed yet.
@@ -144,11 +145,11 @@ The same settings are stored in `%LOCALAPPDATA%\OLEDbar\settings.json` (the pane
 | Key | Default | Meaning |
 |---|---|---|
 | `enabled` | `true` | `false` turns dimming off until you set it back |
-| `idleTimeoutSeconds` | `10` | Delay before dimming at startup and after a pause or fullscreen app (1–3600) |
-| `redimDelaySeconds` | `3` | Delay before dimming after you used the taskbar, Start or Search (0–3600) |
+| `idleTimeoutSeconds` | `10` | Delay before dimming while the pointer is stationary on the taskbar, at startup, and after a pause or fullscreen app (1–3600) |
+| `redimDelaySeconds` | `3` | Delay before dimming after the pointer leaves the taskbar or Start/Search closes with the pointer elsewhere (0–3600) |
 | `dimLevelPercent` | `70` | How much light to remove: 0 = none, 100 = black |
 | `fadeToDimMs` | `1500` | Fade-out duration (0–5000) |
-| `fadeToWakeMs` | `120` | Fade-in duration when you hover (0–5000) |
+| `fadeToWakeMs` | `120` | Fade-in duration on taskbar activity or another wake signal (0–5000) |
 | `wakeOnTaskbarFocus` | `true` | Wake when the taskbar gets keyboard focus (Win+T, clicking it) |
 | `wakeOnShellUi` | `true` | Stay bright while Start, Search or Quick Settings is open |
 | `hideInFullscreen` | `true` | Hide the overlay when a fullscreen app or video is detected |

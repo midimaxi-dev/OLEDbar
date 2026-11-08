@@ -222,7 +222,7 @@ bool AppHost::Initialize() {
     Sync();
     SetTimer(hwnd_, kTimerTrim, kTrimDelayMs, nullptr);
     tray_.Notify(L"OLEDbar is running",
-                 std::format(L"The taskbar dims after {} s without the mouse on it. Click the OLEDbar icon in "
+                 std::format(L"The taskbar dims after {} s without mouse activity, even while hovered. Click the OLEDbar icon in "
                              L"the system tray (it may be behind ^) for settings.",
                              settings_.idleTimeoutSeconds),
                  false);
@@ -507,6 +507,10 @@ LRESULT AppHost::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_INPUT:
         ++rawInputEvents_;
+        if (PointerMonitor::HasButtonActivity(reinterpret_cast<HRAWINPUT>(lParam))) {
+            UpdateHover(true);
+            Sync();
+        }
         // Trailing-edge throttle: the latest cursor position is evaluated once per interval.
         if (!pointerTimerArmed_) {
             SetTimer(hwnd_, kTimerPointer, kPointerThrottleMs, nullptr);
@@ -663,6 +667,7 @@ void AppHost::OnTimer(UINT_PTR id) {
     case kTimerDeadline:
         KillTimer(hwnd_, kTimerDeadline);
         armedDeadline_.reset();
+        UpdateHover();
         UpdateFullscreen();
         machine_.Update();
         break;
@@ -712,17 +717,30 @@ void AppHost::RefreshTaskbar(const wchar_t* reason) {
     UpdateHover();
 }
 
-void AppHost::UpdateHover() {
+void AppHost::UpdateHover(bool buttonActivity) {
     POINT cursor{};
     if (!GetCursorPos(&cursor)) {
         return;
     }
     const TaskbarInfo& info = taskbar_.Info();
     const bool hover = info.visible && PtInRect(&info.visibleRect, cursor);
+    const bool moved = pointerPosition_ &&
+        (pointerPosition_->x != cursor.x || pointerPosition_->y != cursor.y);
+    pointerPosition_ = cursor;
+    const bool buttonDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0 ||
+        (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0 ||
+        (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0 ||
+        (GetAsyncKeyState(VK_XBUTTON1) & 0x8000) != 0 ||
+        (GetAsyncKeyState(VK_XBUTTON2) & 0x8000) != 0;
+    pointerHeld_ = buttonDown && (hover || pointerHeld_);
     if (hover != hover_) {
         hover_ = hover;
         log::Debug(L"Hover: {} (raw input events so far: {})", hover, rawInputEvents_);
         machine_.SetHover(hover);
+    }
+    machine_.SetPointerHeld(pointerHeld_);
+    if (hover && (moved || buttonActivity)) {
+        machine_.PointerActivity();
     }
 }
 
@@ -842,7 +860,7 @@ void AppHost::Sync() {
     // Nothing to watch while locked or with the display off; GetCursorPos also fails on the secure desktop.
     UINT guardInterval = 0;
     if (!locked_ && !displayOff_) {
-        if (hover_) {
+        if (hover_ || pointerHeld_) {
             guardInterval = kGuardHoverMs;
         } else if (overlay_.IsShown() || !rawInputActive_) {
             guardInterval = kGuardDimmedMs;
