@@ -83,8 +83,104 @@ jobs:
           path: out/dist/
           if-no-files-found: error
 
-  release:
+  sign:
     needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-2025
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: OLEDbar-packages
+          path: out/dist
+
+      - name: Prepare release files
+        id: prepare
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $version = $env:RELEASE_TAG.Substring(1)
+          $dist = Join-Path $env:GITHUB_WORKSPACE 'out\dist'
+          $zip = Join-Path $dist "OLEDbar-$version-x64.zip"
+          $setup = Join-Path $dist "OLEDbar-$version-x64-setup.exe"
+          $stage = Join-Path $env:RUNNER_TEMP "OLEDbar-$version-x64"
+          if (-not (Test-Path $zip)) { throw "Portable package not found: $zip" }
+          if (-not (Test-Path $setup)) { throw "Installer not found: $setup" }
+          Expand-Archive -LiteralPath $zip -DestinationPath $stage
+          $app = Join-Path $stage 'OLEDbar.exe'
+          if (-not (Test-Path $app)) { throw "Packaged OLEDbar.exe not found: $app" }
+          "OLED_VERSION=$version" >> $env:GITHUB_ENV
+          "OLED_ZIP_PATH=$zip" >> $env:GITHUB_ENV
+          "OLED_SETUP_PATH=$setup" >> $env:GITHUB_ENV
+          "OLED_STAGE_PATH=$stage" >> $env:GITHUB_ENV
+          "OLED_APP_PATH=$app" >> $env:GITHUB_ENV
+          "app-path=$app" >> $env:GITHUB_OUTPUT
+          "setup-path=$setup" >> $env:GITHUB_OUTPUT
+
+      - name: Sign in to Azure
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign release files
+        uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2
+        with:
+          endpoint: https://eus.codesigning.azure.net/
+          signing-account-name: OLEDbar
+          certificate-profile-name: OLEDbarPublic
+          files: |
+            ${{ steps.prepare.outputs.app-path }}
+            ${{ steps.prepare.outputs.setup-path }}
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          exclude-environment-credential: true
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-cli-credential: false
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
+
+      - name: Verify signatures and refresh checksums
+        shell: pwsh
+        run: |
+          foreach ($file in @($env:OLED_APP_PATH, $env:OLED_SETUP_PATH)) {
+            $signature = Get-AuthenticodeSignature -LiteralPath $file
+            if ($signature.Status -ne 'Valid') {
+              throw "Signature verification failed for $file ($($signature.Status)): $($signature.StatusMessage)"
+            }
+            if (-not $signature.TimeStamperCertificate) {
+              throw "The signature has no trusted timestamp: $file"
+            }
+            Write-Host "Verified signed file: $file"
+          }
+          if (Test-Path $env:OLED_ZIP_PATH) { Remove-Item -LiteralPath $env:OLED_ZIP_PATH }
+          Compress-Archive -Path (Join-Path $env:OLED_STAGE_PATH '*') `
+            -DestinationPath $env:OLED_ZIP_PATH -CompressionLevel Optimal
+          Get-ChildItem $env:GITHUB_WORKSPACE\out\dist -File |
+            Where-Object { $_.Name -like '*.zip' -or $_.Name -like '*-setup.exe' } |
+            Get-FileHash -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLowerInvariant())  $(Split-Path $_.Path -Leaf)" } |
+            Set-Content (Join-Path $env:GITHUB_WORKSPACE 'out\dist\SHA256SUMS.txt') -Encoding ascii
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: OLEDbar-signed-packages
+          path: out/dist/
+          if-no-files-found: error
+
+  release:
+    needs: sign
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -92,7 +188,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: OLEDbar-packages
+          name: OLEDbar-signed-packages
           path: dist
 
       # Created as a draft so the release notes and files can be checked before publishing.
@@ -101,7 +197,7 @@ jobs:
           draft: true
           body: |
             > [!IMPORTANT]
-            > This release is **not code-signed yet**, so Windows may show a SmartScreen warning (*More info → Run anyway*) or, with **Smart App Control** on, may block it.
-            > See [Unsigned releases](https://github.com/midimaxi-dev/OLEDbar#unsigned-releases) in the README.
+            > The executable and installer are signed with Microsoft Artifact Signing and timestamped. SmartScreen warnings may still appear while download reputation builds.
+            > See [Code signing policy](https://github.com/midimaxi-dev/OLEDbar#code-signing-policy) in the README.
           generate_release_notes: true
           files: dist/*
