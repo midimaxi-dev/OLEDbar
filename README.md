@@ -62,7 +62,7 @@ Checks are always initiated by you; OLEDbar does not automatically check, downlo
 - **Does it show up in screenshots?** Normally not. By default, OLEDbar asks Windows to exclude the dimming overlay from screenshots and screen sharing; you can change this in Settings.
 - **Does it support multi-monitor?** Yes, but only the primary display's taskbar is dimmed. Additional taskbars are not dimmed yet.
 - **Does it require admin rights?** No. Both the per-user installer and the portable app run without administrator rights.
-- **Is it signed?** Current releases are unsigned. Windows may warn or block them; if Smart App Control blocks OLEDbar, wait for a signed release.
+- **Is it signed?** Releases produced by the signing-enabled workflow are signed and timestamped with Microsoft Artifact Signing. SmartScreen warnings may still appear while download reputation builds; older releases remain unsigned.
 - **Does it send data anywhere?** Only if you choose to check for updates. GitHub receives the connection's public IP address and the OLEDbar version; settings and logs stay local. See [Privacy](#privacy).
 
 ## Uninstall
@@ -216,16 +216,26 @@ packaging/       package.ps1 (zip + installer) and installer/oledbar.iss (Inno S
 
 ## Code signing policy
 
-### Unsigned releases
+### Signed releases
 
-Releases are currently unsigned. Free code signing through the SignPath Foundation has been requested; once granted, this section will carry their attribution.
+Version-tag releases are built and signed by GitHub Actions from this repository's source code ([.github/workflows/build.yml](.github/workflows/build.yml)). The executable and installer are timestamped with Microsoft Artifact Signing; the portable ZIP contains the signed executable. Nothing built locally is signed.
 
-Signing is not required for HTTPS. Firewall or proxy policies can still block outbound connections, and antivirus software may flag an unsigned app; Smart App Control may prevent it from running.
+The public certificate identifies the individual publisher. It includes the publisher's name and city, state/province, and country; it does not include an email address, street address, or postal code. Review the certificate subject before publishing a release.
 
-- Signed files are built by GitHub Actions from this repository's source code ([.github/workflows/build.yml](.github/workflows/build.yml)). Nothing built locally is signed.
-- Committers and reviewers: [midimaxi-dev](https://github.com/midimaxi-dev)
-- Approvers (who approve each release for signing): [midimaxi-dev](https://github.com/midimaxi-dev)
-- All team members use multi-factor authentication for GitHub and SignPath.
+The signing job runs only for version tags and uses GitHub OpenID Connect (OIDC), not a stored Azure password. To enable signing:
+
+1. Create a Microsoft Entra app registration and service principal.
+2. Add a federated credential with issuer `https://token.actions.githubusercontent.com`, audience `api://AzureADTokenExchange`, and subject `repo:midimaxi-dev@158115211/OLEDbar@1443120479:environment:release`. The subject uses GitHub's immutable owner and repository IDs; it must match the repository's OIDC settings. Select **Other issuer** if the GitHub Actions scenario cannot generate that exact subject.
+3. Assign the service principal the **Artifact Signing Certificate Profile Signer** role on the `OLEDbar` account.
+4. Create the GitHub `release` environment and add these environment secrets:
+
+    - `AZURE_CLIENT_ID`
+    - `AZURE_TENANT_ID`
+    - `AZURE_SUBSCRIPTION_ID`
+
+For stronger release protection, require approval for the `release` environment and restrict who can create version tags.
+
+Previous releases remain unchanged and unsigned. SmartScreen reputation can take time to build even for signed files.
 
 ## License
 
