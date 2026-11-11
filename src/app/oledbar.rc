@@ -37,51 +37,49 @@ BEGIN
     END
 END
 
-IDD_SETTINGS DIALOGEX 0, 0, 300, 323
+IDD_SETTINGS DIALOGEX 0, 0, 300, 307
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX
 EXSTYLE WS_EX_APPWINDOW
 CAPTION "OLEDbar Settings"
 FONT 9, "Segoe UI", 400, 0, 0x1
 BEGIN
-    AUTOCHECKBOX    "&Dim the taskbar when it's not in use", IDC_ENABLED, 10, 8, 280, 10
+    GROUPBOX        "Dimming", IDC_STATIC, 7, 8, 286, 102
+    LTEXT           "Dim &level:", IDC_STATIC, 15, 23, 80, 8
+    CONTROL         "", IDC_DIM_SLIDER, TRACKBAR_CLASS, TBS_HORZ | TBS_AUTOTICKS | WS_TABSTOP, 96, 19, 146, 15
+    LTEXT           "", IDC_DIM_VALUE, 246, 23, 44, 8
+    LTEXT           "Dim &after idle (seconds):", IDC_STATIC, 15, 42, 210, 8
+    EDITTEXT        IDC_IDLE_EDIT, 230, 40, 50, 12, ES_AUTOHSCROLL
+    CONTROL         "", IDC_IDLE_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 40, 10, 12
+    LTEXT           "Dim a&gain after using the taskbar (seconds):", IDC_STATIC, 15, 58, 210, 8
+    EDITTEXT        IDC_REDIM_EDIT, 230, 56, 50, 12, ES_AUTOHSCROLL
+    CONTROL         "", IDC_REDIM_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 56, 10, 12
+    LTEXT           "Fade to &dim (milliseconds):", IDC_STATIC, 15, 74, 210, 8
+    EDITTEXT        IDC_FADE_OUT_EDIT, 230, 72, 50, 12, ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "", IDC_FADE_OUT_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 72, 10, 12
+    LTEXT           "Fade back to &bright (milliseconds):", IDC_STATIC, 15, 90, 210, 8
+    EDITTEXT        IDC_FADE_IN_EDIT, 230, 88, 50, 12, ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "", IDC_FADE_IN_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 88, 10, 12
 
-    GROUPBOX        "Dimming", IDC_STATIC, 7, 24, 286, 102
-    LTEXT           "Dim &level:", IDC_STATIC, 15, 39, 80, 8
-    CONTROL         "", IDC_DIM_SLIDER, TRACKBAR_CLASS, TBS_HORZ | TBS_AUTOTICKS | WS_TABSTOP, 96, 35, 146, 15
-    LTEXT           "", IDC_DIM_VALUE, 246, 39, 44, 8
-    LTEXT           "Dim &after idle (seconds):", IDC_STATIC, 15, 58, 210, 8
-    EDITTEXT        IDC_IDLE_EDIT, 230, 56, 50, 12, ES_AUTOHSCROLL
-    CONTROL         "", IDC_IDLE_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 56, 10, 12
-    LTEXT           "Dim a&gain after using the taskbar (seconds):", IDC_STATIC, 15, 74, 210, 8
-    EDITTEXT        IDC_REDIM_EDIT, 230, 72, 50, 12, ES_AUTOHSCROLL
-    CONTROL         "", IDC_REDIM_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 72, 10, 12
-    LTEXT           "Fade to &dim (milliseconds):", IDC_STATIC, 15, 90, 210, 8
-    EDITTEXT        IDC_FADE_OUT_EDIT, 230, 88, 50, 12, ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "", IDC_FADE_OUT_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 88, 10, 12
-    LTEXT           "Fade back to &bright (milliseconds):", IDC_STATIC, 15, 106, 210, 8
-    EDITTEXT        IDC_FADE_IN_EDIT, 230, 104, 50, 12, ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "", IDC_FADE_IN_SPIN, UPDOWN_CLASS, UDS_ALIGNRIGHT | UDS_AUTOBUDDY | UDS_ARROWKEYS | UDS_NOTHOUSANDS, 280, 104, 10, 12
+    GROUPBOX        "Behavior", IDC_STATIC, 7, 116, 286, 98
+    AUTOCHECKBOX    "Wake when the taskbar gets keyboard &focus (Win+T)", IDC_WAKE_FOCUS, 15, 130, 270, 10
+    AUTOCHECKBOX    "Stay bright while &Start, Search or Quick Settings is open", IDC_WAKE_SHELL, 15, 144, 270, 10
+    AUTOCHECKBOX    "Never dim over full&screen apps and videos", IDC_HIDE_FULLSCREEN, 15, 158, 270, 10
+    AUTOCHECKBOX    "Show the normal taskbar in screens&hots and screen sharing", IDC_EXCLUDE_CAPTURE, 15, 172, 270, 10
+    AUTOCHECKBOX    "Start OLEDbar when I sign &in", IDC_RUN_AT_STARTUP, 15, 186, 270, 10
+    AUTOCHECKBOX    "Detailed (debug) &logging", IDC_DEBUG_LOG, 15, 200, 270, 10
 
-    GROUPBOX        "Behavior", IDC_STATIC, 7, 132, 286, 98
-    AUTOCHECKBOX    "Wake when the taskbar gets keyboard &focus (Win+T)", IDC_WAKE_FOCUS, 15, 146, 270, 10
-    AUTOCHECKBOX    "Stay bright while &Start, Search or Quick Settings is open", IDC_WAKE_SHELL, 15, 160, 270, 10
-    AUTOCHECKBOX    "Never dim over full&screen apps and videos", IDC_HIDE_FULLSCREEN, 15, 174, 270, 10
-    AUTOCHECKBOX    "Show the normal taskbar in screens&hots and screen sharing", IDC_EXCLUDE_CAPTURE, 15, 188, 270, 10
-    AUTOCHECKBOX    "Start OLEDbar when I sign &in", IDC_RUN_AT_STARTUP, 15, 202, 270, 10
-    AUTOCHECKBOX    "Detailed (debug) &logging", IDC_DEBUG_LOG, 15, 216, 270, 10
+    GROUPBOX        "Keyboard shortcut", IDC_STATIC, 7, 220, 286, 46
+    LTEXT           "Toggle desktop ic&ons:", IDC_STATIC, 15, 236, 80, 8
+    CONTROL         "", IDC_DESKTOP_ICONS_HOTKEY, HOTKEY_CLASS, WS_BORDER | WS_TABSTOP, 96, 234, 140, 12
+    PUSHBUTTON      "&Clear", IDC_DESKTOP_ICONS_CLEAR, 240, 233, 45, 14
+    LTEXT           "Off unless set. Click the box and press keys, for example Ctrl+Alt+D.", IDC_STATIC, 15, 251, 270, 8
 
-    GROUPBOX        "Keyboard shortcut", IDC_STATIC, 7, 236, 286, 46
-    LTEXT           "Toggle desktop ic&ons:", IDC_STATIC, 15, 252, 80, 8
-    CONTROL         "", IDC_DESKTOP_ICONS_HOTKEY, HOTKEY_CLASS, WS_BORDER | WS_TABSTOP, 96, 250, 140, 12
-    PUSHBUTTON      "&Clear", IDC_DESKTOP_ICONS_CLEAR, 240, 249, 45, 14
-    LTEXT           "Off unless set. Click the box and press keys, for example Ctrl+Alt+D.", IDC_STATIC, 15, 267, 270, 8
-
-    CONTROL         "", IDC_SETTINGS_ABOUT, WC_LINK, WS_TABSTOP, 7, 288, 280, 12
-    PUSHBUTTON      "&Restore defaults", IDC_DEFAULTS, 7, 302, 66, 14
-    PUSHBUTTON      "Settings fil&e...", IDC_OPEN_FILE, 77, 302, 62, 14
-    DEFPUSHBUTTON   "OK", IDOK, 147, 302, 46, 14
-    PUSHBUTTON      "Cancel", IDCANCEL, 197, 302, 46, 14
-    PUSHBUTTON      "A&pply", IDC_APPLY, 247, 302, 46, 14
+    CONTROL         "", IDC_SETTINGS_ABOUT, WC_LINK, WS_TABSTOP, 7, 272, 280, 12
+    PUSHBUTTON      "&Restore defaults", IDC_DEFAULTS, 7, 286, 66, 14
+    PUSHBUTTON      "Settings fil&e...", IDC_OPEN_FILE, 77, 286, 62, 14
+    DEFPUSHBUTTON   "OK", IDOK, 147, 286, 46, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 197, 286, 46, 14
+    PUSHBUTTON      "A&pply", IDC_APPLY, 247, 286, 46, 14
 END
 
 IDD_ABOUT DIALOGEX 0, 0, 300, 154

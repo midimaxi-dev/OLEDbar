@@ -8,7 +8,6 @@
 #define IDD_SETTINGS 100
 #define IDD_ABOUT 101
 
-#define IDC_ENABLED 1001
 #define IDC_DIM_SLIDER 1002
 #define IDC_DIM_VALUE 1003
 #define IDC_IDLE_EDIT 1004

@@ -6,10 +6,11 @@
 
 After a few seconds without mouse activity on the Windows 11 taskbar, a dark, click-through layer fades in over it, even if the pointer is parked on it. This dims the background, icons, text, clock and tray. Moving onto or within the taskbar, clicking or scrolling wakes it. It stays bright during a drag and, by default, while Start or Search is open.
 
-> **Status:** version 0.4.1, a usable early release.
+> **Status:** version 0.5.0, a usable early release.
 
 - **Tiny footprint, not a heavy suite:** a **~715 KB release EXE**, using **under 1 MB of idle private working set** in our local test (as shown in Task Manager; memory use varies by system). No runtime to install; no admin rights required.
 - No injection into Explorer: it only draws a click-through layer above the taskbar.
+- Dims the taskbar wherever it's docked: bottom, top, left or right edge of the screen.
 - Settings panel with a live preview of the dim level on your taskbar.
 - By default, hides the overlay for fullscreen apps and when the taskbar is auto-hidden.
 - By default, keeps the dimming overlay out of supported screenshots and screen sharing.
@@ -34,9 +35,9 @@ Get the latest version from **[Releases](https://github.com/midimaxi-dev/OLEDbar
 | `OLEDbar-<version>-x64-setup.exe` | Most people. Installs for your user only, no admin rights. Adds a Start menu entry, can start OLEDbar when you sign in, and appears in *Settings → Apps* for uninstalling. |
 | `OLEDbar-<version>-x64.zip` | Portable use. Unzip anywhere and run `OLEDbar.exe`. Turn on *Start OLEDbar when I sign in* in its settings if you like. |
 
-`SHA256SUMS.txt` lists checksums for both files. To verify a download, compare its hash with the matching entry, for example: `Get-FileHash .\OLEDbar-0.4.1-x64-setup.exe`.
+`SHA256SUMS.txt` lists checksums for both files. To verify a download, compare its hash with the matching entry, for example: `Get-FileHash .\OLEDbar-0.5.0-x64-setup.exe`.
 
-Windows may warn about unsigned releases; see [Unsigned releases](#unsigned-releases).
+Releases are signed with Microsoft Artifact Signing. Windows SmartScreen may still warn while download reputation builds; see [Code signing policy](#code-signing-policy).
 
 ## Settings
 
@@ -62,7 +63,7 @@ Checks are always initiated by you; OLEDbar does not automatically check, downlo
 - **Does it show up in screenshots?** Normally not. By default, OLEDbar asks Windows to exclude the dimming overlay from screenshots and screen sharing; you can change this in Settings.
 - **Does it support multi-monitor?** Yes, but only the primary display's taskbar is dimmed. Additional taskbars are not dimmed yet.
 - **Does it require admin rights?** No. Both the per-user installer and the portable app run without administrator rights.
-- **Is it signed?** Releases produced by the signing-enabled workflow are signed and timestamped with Microsoft Artifact Signing. SmartScreen warnings may still appear while download reputation builds; older releases remain unsigned.
+- **Is it signed?** Yes. OLEDbar is signed and timestamped with Microsoft Artifact Signing. SmartScreen warnings may still appear while download reputation builds.
 - **Does it send data anywhere?** Only if you choose to check for updates. GitHub receives the connection's public IP address and the OLEDbar version; settings and logs stay local. See [Privacy](#privacy).
 
 ## Uninstall
@@ -153,7 +154,7 @@ The same settings are stored in `%LOCALAPPDATA%\OLEDbar\settings.json` (the pane
 
 | Key | Default | Meaning |
 |---|---|---|
-| `enabled` | `true` | `false` turns dimming off until you set it back |
+| `enabled` | `true` | `false` turns dimming off and keeps it off after restarts. Not shown in the settings panel; right-click the tray icon and choose **Resume** to turn it back on |
 | `idleTimeoutSeconds` | `10` | Delay before dimming while the pointer is stationary on the taskbar, at startup, and after a pause or fullscreen app (1–3600) |
 | `redimDelaySeconds` | `3` | Delay before dimming after the pointer leaves the taskbar or Start/Search closes with the pointer elsewhere (0–3600) |
 | `dimLevelPercent` | `70` | How much light to remove: 0 = none, 100 = black |
@@ -188,7 +189,7 @@ This writes `OLEDbar-<version>-x64.zip`, `SHA256SUMS.txt` and, if [Inno Setup 6]
 1. Bump `project(... VERSION x.y.z)` in `CMakeLists.txt` and commit. This is the only place the version is set.
 2. Tag and push:
    ```powershell
-   git tag v0.4.1; git push origin v0.4.1
+   git tag v0.5.0; git push origin v0.5.0
    ```
 3. The workflow checks that the tag matches the project version, builds, and creates a **draft** GitHub Release with the installer, zip and checksums. Review it on GitHub, then click **Publish**.
 
@@ -235,7 +236,7 @@ The signing job runs only for version tags and uses GitHub OpenID Connect (OIDC)
 
 For stronger release protection, require approval for the `release` environment and restrict who can create version tags.
 
-Previous releases remain unchanged and unsigned. SmartScreen reputation can take time to build even for signed files.
+SmartScreen reputation can take time to build even for signed files.
 
 ## License
 

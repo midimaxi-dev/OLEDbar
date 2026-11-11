@@ -236,7 +236,6 @@ void SettingsDialog::InitializeControls() {
 }
 
 void SettingsDialog::Load(const Settings& settings, bool runAtStartup) {
-    SetCheck(hwnd_, IDC_ENABLED, settings.enabled);
     SendDlgItemMessageW(hwnd_, IDC_DIM_SLIDER, TBM_SETPOS, TRUE, std::lround(settings.dimLevelPercent));
     UpdateDimLabel();
     SetNumber(hwnd_, IDC_IDLE_EDIT, settings.idleTimeoutSeconds);
@@ -272,7 +271,6 @@ bool SettingsDialog::Read(Settings& settings, bool& runAtStartup) {
         return false;
     }
 
-    settings.enabled = GetCheck(hwnd_, IDC_ENABLED);
     settings.dimLevelPercent = DimLevel();
     settings.idleTimeoutSeconds = values[0];
     settings.redimDelaySeconds = values[1];

@@ -413,11 +413,20 @@ void AppHost::Resume() {
     UpdateTray();
 }
 
+void AppHost::TurnDimmingOn() {
+    Settings settings = settings_;
+    settings.enabled = true;
+    if (!settingsStore_.Save(settings)) {
+        log::Info(L"Saving settings failed ({}); dimming is on until OLEDbar restarts", GetLastError());
+    }
+    ApplySettings(settings);
+}
+
 void AppHost::UpdateTray() {
     const bool active = pause_ == PauseMode::None && settings_.enabled;
     std::wstring tip;
     if (!settings_.enabled) {
-        tip = L"OLEDbar - disabled in settings";
+        tip = L"OLEDbar - off (right-click and choose Resume)";
     } else if (pause_ == PauseMode::Timed) {
         tip = std::format(L"OLEDbar - paused until {:02}:{:02}", pauseEnd_.wHour, pauseEnd_.wMinute);
     } else if (pause_ == PauseMode::UntilResumed) {
@@ -515,7 +524,10 @@ void AppHost::FinishUpdateCheck() {
     aboutDialog_.SetResult(*result);
 }
 
-bool AppHost::ApplyFromDialog(const Settings& settings, bool runAtStartup) {
+bool AppHost::ApplyFromDialog(const Settings& dialogSettings, bool runAtStartup) {
+    // The panel has no control for `enabled`; keep the current value (set in settings.json or by tray Resume).
+    Settings settings = dialogSettings;
+    settings.enabled = settings_.enabled;
     // Claim the shortcut first, so a conflict keeps the dialog open and nothing is saved.
     if (!SetDesktopIconsHotkey(settings.toggleDesktopIconsHotkey)) {
         SetDesktopIconsHotkey(settings_.toggleDesktopIconsHotkey);
@@ -996,7 +1008,7 @@ void AppHost::ShowTrayMenu(POINT anchor) {
     }
     AppendMenuW(menu.get(), MF_STRING | MF_GRAYED, 0, L"OLEDbar " OLEDBAR_VERSION_WSTRING);
     AppendMenuW(menu.get(), MF_SEPARATOR, 0, nullptr);
-    if (pause_ != PauseMode::None) {
+    if (pause_ != PauseMode::None || !settings_.enabled) {
         AppendMenuW(menu.get(), MF_STRING, kCmdResume, L"Resume");
     } else {
         // Owned by `menu` once appended; destroyed with it.
@@ -1004,8 +1016,7 @@ void AppHost::ShowTrayMenu(POINT anchor) {
         AppendMenuW(pauseMenu, MF_STRING, kCmdPause15, L"For 15 minutes");
         AppendMenuW(pauseMenu, MF_STRING, kCmdPause60, L"For 1 hour");
         AppendMenuW(pauseMenu, MF_STRING, kCmdPauseUntilResumed, L"Until I resume");
-        AppendMenuW(menu.get(), MF_POPUP | (settings_.enabled ? MF_ENABLED : MF_GRAYED),
-                    reinterpret_cast<UINT_PTR>(pauseMenu), L"Pause");
+        AppendMenuW(menu.get(), MF_POPUP, reinterpret_cast<UINT_PTR>(pauseMenu), L"Pause");
     }
     const bool canDim = machine_.State() != DimState::Suppressed;
     AppendMenuW(menu.get(), MF_STRING | (canDim ? MF_ENABLED : MF_GRAYED), kCmdDimNow, L"Dim now");
@@ -1043,6 +1054,9 @@ void AppHost::ShowTrayMenu(POINT anchor) {
         break;
     case kCmdResume:
         Resume();
+        if (!settings_.enabled) {
+            TurnDimmingOn();
+        }
         break;
     case kCmdDimNow:
         UpdateFullscreen();

@@ -50,7 +50,7 @@
         </a>
         <a class="btn btn-ghost" href="https://github.com/midimaxi-dev/OLEDbar">View source on GitHub</a>
       </div>
-      <p class="meta"><span data-version>v0.3.0</span> · ~700 KB · &lt;1 MB idle working set in testing · Windows 11 22H2+ · Free and open source (MIT)</p>
+      <p class="meta"><span data-version>v0.5.0</span> · ~700 KB · &lt;1 MB idle working set in testing · Windows 11 22H2+ · Free and open source (MIT)</p>
 
       <div class="stage stage-hero" data-demo="hero">
         <div class="wallpaper" aria-hidden="true"></div>
@@ -131,7 +131,7 @@
           </div>
         </div>
         <figure class="shot">
-          <img src="assets/settings.png" width="477" height="643" loading="lazy" alt="The OLEDbar settings panel: dim level slider, delays, fade durations, behavior options and a keyboard shortcut for desktop icons.">
+          <img src="assets/settings.png" width="477" height="639" loading="lazy" alt="The OLEDbar settings panel: dim level slider, delays, fade durations, behavior options and a keyboard shortcut for desktop icons.">
           <figcaption>The real settings panel. Left-click the tray icon to open it.</figcaption>
         </figure>
       </div>
@@ -180,7 +180,7 @@
     <!-- Download -->
     <section class="download" id="download" aria-labelledby="dl-title">
       <h2 id="dl-title" class="center">Give your taskbar a break.</h2>
-      <p class="center sub">Windows 11 22H2 or later · x64 · <span data-version>v0.3.0</span></p>
+      <p class="center sub">Windows 11 22H2 or later · x64 · <span data-version>v0.5.0</span></p>
       <div class="dl-grid">
         <a class="dl-card dl-primary" data-dl="setup" href="https://github.com/midimaxi-dev/OLEDbar/releases/latest">
           <span class="dl-kind">Installer</span>
@@ -193,7 +193,7 @@
           <span class="dl-desc">Unzip and run OLEDbar.exe. Nothing to install. Delete the folder to remove it.</span>
         </a>
       </div>
-      <p class="fine center">Releases are currently unsigned, so Windows may show a warning. Checksums are in <code>SHA256SUMS.txt</code> on the release page.</p>
+      <p class="fine center">Signed with Microsoft Artifact Signing. Windows may still show a SmartScreen warning while download reputation builds. Checksums are in <code>SHA256SUMS.txt</code> on the release page.</p>
     </section>
 
     <!-- FAQ -->
@@ -203,9 +203,10 @@
         <details><summary>Does it work with auto-hide?</summary><p>Yes. The overlay hides while the taskbar is hidden and can resume when it reappears.</p></details>
         <details><summary>Does it affect fullscreen apps?</summary><p>By default, OLEDbar hides its overlay when it detects a fullscreen app or video.</p></details>
         <details><summary>Does it show up in screenshots?</summary><p>Normally not. By default, OLEDbar asks Windows to exclude the dimming overlay from screenshots and screen sharing. You can change this in Settings.</p></details>
+        <details><summary>Does it work if my taskbar isn't at the bottom?</summary><p>Yes. OLEDbar dims the taskbar wherever it's docked: bottom, top, left or right edge of the screen.</p></details>
         <details><summary>Does it support multiple monitors?</summary><p>Yes, but only the primary display's taskbar is dimmed. Additional taskbars are not dimmed yet.</p></details>
         <details><summary>Does it need admin rights?</summary><p>No. Both the per-user installer and the portable app run without administrator rights.</p></details>
-        <details><summary>Is it signed?</summary><p>Not yet. Windows may warn about or block unsigned apps. If Smart App Control blocks OLEDbar, wait for a signed release.</p></details>
+        <details><summary>Is it signed?</summary><p>Yes. OLEDbar is signed and timestamped with Microsoft Artifact Signing. SmartScreen may still warn while download reputation builds.</p></details>
         <details><summary>How do I check for updates?</summary><p>Open About from Settings or the tray menu, then select Check for updates. OLEDbar never checks, downloads or installs updates automatically.</p></details>
         <details><summary>Does it send data anywhere?</summary><p>The OLEDbar app contacts GitHub only when you choose to check for updates; GitHub receives the connection's public IP address and OLEDbar version. Settings and logs stay in <code>%LOCALAPPDATA%\OLEDbar</code>. This website separately requests current release details from GitHub when opened.</p></details>
       </div>

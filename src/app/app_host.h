@@ -51,6 +51,8 @@ private:
     void OnToggleDesktopIcons(const wchar_t* source);
     void Pause(PauseMode mode, UINT minutes);
     void Resume();
+    // Tray Resume while `enabled` is false: saves enabled=true and applies it.
+    void TurnDimmingOn();
     void UpdateTray();
     void OpenFile(const std::wstring& path);
     void ShowSettings();

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 project(oledbar
-    VERSION 0.4.1
+    VERSION 0.5.0
     DESCRIPTION "OLEDbar: dims the Windows 11 taskbar to prevent OLED burn-in"
     LANGUAGES CXX RC)
 
