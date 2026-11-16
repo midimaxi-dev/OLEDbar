@@ -91,11 +91,18 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      # Also read by packaging/azure-sign.ps1, which Inno Setup calls to sign the installer and uninstaller.
+      SIGNING_ENDPOINT: https://eus.codesigning.azure.net/
+      SIGNING_ACCOUNT: OLEDbar
+      SIGNING_PROFILE: OLEDbarPublic
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: OLEDbar-packages
-          path: out/dist
+          path: ${{ runner.temp }}/unsigned
 
       - name: Prepare release files
         id: prepare
@@ -104,22 +111,15 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           $version = $env:RELEASE_TAG.Substring(1)
-          $dist = Join-Path $env:GITHUB_WORKSPACE 'out\dist'
-          $zip = Join-Path $dist "OLEDbar-$version-x64.zip"
-          $setup = Join-Path $dist "OLEDbar-$version-x64-setup.exe"
-          $stage = Join-Path $env:RUNNER_TEMP "OLEDbar-$version-x64"
+          $zip = Join-Path $env:RUNNER_TEMP "unsigned\OLEDbar-$version-x64.zip"
           if (-not (Test-Path $zip)) { throw "Portable package not found: $zip" }
-          if (-not (Test-Path $setup)) { throw "Installer not found: $setup" }
-          Expand-Archive -LiteralPath $zip -DestinationPath $stage
-          $app = Join-Path $stage 'OLEDbar.exe'
+          $appDir = Join-Path $env:RUNNER_TEMP 'app'
+          Expand-Archive -LiteralPath $zip -DestinationPath $appDir
+          $app = Join-Path $appDir 'OLEDbar.exe'
           if (-not (Test-Path $app)) { throw "Packaged OLEDbar.exe not found: $app" }
           "OLED_VERSION=$version" >> $env:GITHUB_ENV
-          "OLED_ZIP_PATH=$zip" >> $env:GITHUB_ENV
-          "OLED_SETUP_PATH=$setup" >> $env:GITHUB_ENV
-          "OLED_STAGE_PATH=$stage" >> $env:GITHUB_ENV
-          "OLED_APP_PATH=$app" >> $env:GITHUB_ENV
+          "OLED_APP_DIR=$appDir" >> $env:GITHUB_ENV
           "app-path=$app" >> $env:GITHUB_OUTPUT
-          "setup-path=$setup" >> $env:GITHUB_OUTPUT
 
       - name: Sign in to Azure
         uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
@@ -128,15 +128,15 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Sign release files
+      # Signed before packaging so both the zip and the installer carry the signed EXE.
+      # This also installs the ArtifactSigning module that packaging/azure-sign.ps1 uses.
+      - name: Sign OLEDbar.exe
         uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2
         with:
-          endpoint: https://eus.codesigning.azure.net/
-          signing-account-name: OLEDbar
-          certificate-profile-name: OLEDbarPublic
-          files: |
-            ${{ steps.prepare.outputs.app-path }}
-            ${{ steps.prepare.outputs.setup-path }}
+          endpoint: ${{ env.SIGNING_ENDPOINT }}
+          signing-account-name: ${{ env.SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ env.SIGNING_PROFILE }}
+          files: ${{ steps.prepare.outputs.app-path }}
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
@@ -151,10 +151,18 @@ jobs:
           exclude-azure-developer-cli-credential: true
           exclude-interactive-browser-credential: true
 
-      - name: Verify signatures and refresh checksums
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Package with signed installer and uninstaller
+        shell: pwsh
+        run: ./packaging/package.ps1 -BuildDir $env:OLED_APP_DIR -Sign
+
+      # Installs to a temp folder so the EXE inside the installer and the generated uninstaller are checked too.
+      - name: Verify signatures
         shell: pwsh
         run: |
-          foreach ($file in @($env:OLED_APP_PATH, $env:OLED_SETUP_PATH)) {
+          function Assert-Signed([string]$file) {
             $signature = Get-AuthenticodeSignature -LiteralPath $file
             if ($signature.Status -ne 'Valid') {
               throw "Signature verification failed for $file ($($signature.Status)): $($signature.StatusMessage)"
@@ -164,14 +172,27 @@ jobs:
             }
             Write-Host "Verified signed file: $file"
           }
-          if (Test-Path $env:OLED_ZIP_PATH) { Remove-Item -LiteralPath $env:OLED_ZIP_PATH }
-          Compress-Archive -Path (Join-Path $env:OLED_STAGE_PATH '*') `
-            -DestinationPath $env:OLED_ZIP_PATH -CompressionLevel Optimal
-          Get-ChildItem $env:GITHUB_WORKSPACE\out\dist -File |
-            Where-Object { $_.Name -like '*.zip' -or $_.Name -like '*-setup.exe' } |
-            Get-FileHash -Algorithm SHA256 |
-            ForEach-Object { "$($_.Hash.ToLowerInvariant())  $(Split-Path $_.Path -Leaf)" } |
-            Set-Content (Join-Path $env:GITHUB_WORKSPACE 'out\dist\SHA256SUMS.txt') -Encoding ascii
+          $dist = Join-Path $env:GITHUB_WORKSPACE 'out\dist'
+          $zip = Join-Path $dist "OLEDbar-$env:OLED_VERSION-x64.zip"
+          $setup = Join-Path $dist "OLEDbar-$env:OLED_VERSION-x64-setup.exe"
+          Assert-Signed $setup
+
+          $zipDir = Join-Path $env:RUNNER_TEMP 'verify-zip'
+          Expand-Archive -LiteralPath $zip -DestinationPath $zipDir
+          Assert-Signed (Join-Path $zipDir 'OLEDbar.exe')
+
+          $installDir = Join-Path $env:RUNNER_TEMP 'verify-install'
+          $install = Start-Process $setup -Wait -PassThru -ArgumentList @(
+            '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/MERGETASKS=!startup', "/DIR=`"$installDir`"")
+          if ($install.ExitCode -ne 0) { throw "Test install failed with exit code $($install.ExitCode)" }
+          $installed = @(Get-ChildItem $installDir -Filter *.exe -File)
+          if (-not ($installed.Name -contains 'OLEDbar.exe') -or -not ($installed.Name -like 'unins*.exe')) {
+            throw "Unexpected installed files: $($installed.Name -join ', ')"
+          }
+          $installed | ForEach-Object { Assert-Signed $_.FullName }
+          $uninstaller = $installed | Where-Object Name -like 'unins*.exe' | Select-Object -First 1
+          $uninstall = Start-Process $uninstaller.FullName -Wait -PassThru -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
+          if ($uninstall.ExitCode -ne 0) { throw "Test uninstall failed with exit code $($uninstall.ExitCode)" }
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

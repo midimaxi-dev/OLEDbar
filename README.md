@@ -219,7 +219,7 @@ packaging/       package.ps1 (zip + installer) and installer/oledbar.iss (Inno S
 
 ### Signed releases
 
-Version-tag releases are built and signed by GitHub Actions from this repository's source code ([.github/workflows/build.yml](.github/workflows/build.yml)). The executable and installer are timestamped with Microsoft Artifact Signing; the portable ZIP contains the signed executable. Nothing built locally is signed.
+Version-tag releases are built and signed by GitHub Actions from this repository's source code ([.github/workflows/build.yml](.github/workflows/build.yml)). The executable, the installer and its uninstaller are timestamped with Microsoft Artifact Signing. The installer and the portable ZIP both contain the signed executable. Before release, the workflow installs the package to a temporary folder and checks every installed file's signature. Nothing built locally is signed.
 
 The public certificate identifies the individual publisher. It includes the publisher's name and city, state/province, and country; it does not include an email address, street address, or postal code. Review the certificate subject before publishing a release.
 
