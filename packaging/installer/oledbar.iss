@@ -42,6 +42,11 @@ SolidCompression=yes
 WizardStyle=modern
 ; The running app is closed in [Code] instead of via Restart Manager.
 CloseApplications=no
+#ifdef SignInstaller
+; Signs Setup and the uninstaller it writes (unins000.exe) with the "azure" sign tool from ISCC /S (package.ps1 -Sign).
+SignTool=azure
+SignedUninstaller=yes
+#endif
 
 [Tasks]
 Name: "startup"; Description: "Start OLEDbar when I sign in"

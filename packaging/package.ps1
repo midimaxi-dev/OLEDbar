@@ -4,10 +4,13 @@
 .DESCRIPTION
     The version is read from the EXE's version resource (CMake project(VERSION)).
     Output in out\dist: OLEDbar-<version>-x64.zip, OLEDbar-<version>-x64-setup.exe, SHA256SUMS.txt
+    -Sign signs the installer and its uninstaller with azure-sign.ps1 while compiling (CI release job only);
+    OLEDbar.exe in BuildDir must already be signed.
 #>
 param(
     [string]$BuildDir = (Join-Path $PSScriptRoot '..\out\build\x64-release'),
-    [string]$OutDir = (Join-Path $PSScriptRoot '..\out\dist')
+    [string]$OutDir = (Join-Path $PSScriptRoot '..\out\dist'),
+    [switch]$Sign
 )
 $ErrorActionPreference = 'Stop'
 
@@ -42,9 +45,19 @@ if (-not $iscc) {
         Where-Object { Test-Path $_ } | Select-Object -First 1
 }
 if ($iscc) {
-    & $iscc /Qp "/DAppVersion=$version" "/DSourceExe=$exe" "/DOutputDir=$OutDir" (Join-Path $root 'packaging\installer\oledbar.iss')
+    $isccArgs = @('/Qp', "/DAppVersion=$version", "/DSourceExe=$exe", "/DOutputDir=$OutDir")
+    if ($Sign) {
+        # Inno Setup replaces $q with a quote and $f with the quoted path of the file to sign.
+        $pwsh = (Get-Process -Id $PID).Path
+        $signScript = Join-Path $PSScriptRoot 'azure-sign.ps1'
+        $isccArgs += '/DSignInstaller'
+        $isccArgs += '/Sazure=$q' + $pwsh + '$q -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $q' + $signScript + '$q -Path $f'
+    }
+    & $iscc @isccArgs (Join-Path $root 'packaging\installer\oledbar.iss')
     if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE" }
     Write-Host "Created $name-setup.exe"
+} elseif ($Sign) {
+    throw 'Inno Setup 6 not found; cannot build the signed installer.'
 } else {
     Write-Warning 'Inno Setup 6 not found; skipping the installer (winget install JRSoftware.InnoSetup).'
 }
